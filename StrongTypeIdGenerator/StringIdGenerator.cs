@@ -117,12 +117,15 @@ namespace StrongTypeIdGenerator.Analyzer
                 return false;
             }
 
-            foreach (var argument in attributeSyntax.ArgumentList!.Arguments)
+            if (attributeSyntax.ArgumentList != null)
             {
-                var argumentName = argument.NameEquals?.Name.Identifier.Text;
-                if (argumentName == "GenerateConstructorPrivate" && argument.Expression is LiteralExpressionSyntax literalExpression)
+                foreach (var argument in attributeSyntax.ArgumentList.Arguments)
                 {
-                    return (bool)model.GetConstantValue(literalExpression).Value!;
+                    var argumentName = argument.NameEquals?.Name.Identifier.Text;
+                    if (argumentName == "GenerateConstructorPrivate" && argument.Expression is LiteralExpressionSyntax literalExpression)
+                    {
+                        return (bool)model.GetConstantValue(literalExpression).Value!;
+                    }
                 }
             }
 
@@ -142,6 +145,8 @@ namespace StrongTypeIdGenerator.Analyzer
                 sourceBuilder.AppendLine("{");
             }
 
+            sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"    [System.ComponentModel.TypeConverter(typeof({className}Converter))]");
             sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifier<{className}, {TIdentifier}>");
             sourceBuilder.AppendLine("    {");
             sourceBuilder.AppendLine($"        {(generateConstructorPrivate ? "private" : "public")} {className}({TIdentifier} value)");
@@ -246,6 +251,19 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine($"        public static bool operator >=({className} left, {className} right)");
             sourceBuilder.AppendLine("        {");
             sourceBuilder.AppendLine("            return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;");
+            sourceBuilder.AppendLine("        }");
+            sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"        private sealed partial class {className}Converter : TypeToStringConverter<{className}>");
+            sourceBuilder.AppendLine("        {");
+            sourceBuilder.AppendLine($"            protected override string? InternalConvertToString({className} value)");
+            sourceBuilder.AppendLine("            {");
+            sourceBuilder.AppendLine("                return value.Value;");
+            sourceBuilder.AppendLine("            }");
+            sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"            protected override {className}? InternalConvertFromString(string value)");
+            sourceBuilder.AppendLine("            {");
+            sourceBuilder.AppendLine($"                return new {className}(value);");
+            sourceBuilder.AppendLine("            }");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine("    }");
 

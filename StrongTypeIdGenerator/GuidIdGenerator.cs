@@ -104,6 +104,8 @@ namespace StrongTypeIdGenerator.Analyzer
                 sourceBuilder.AppendLine("{");
             }
 
+            sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"    [System.ComponentModel.TypeConverter(typeof({className}Converter))]");
             sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifier<{className}, {TIdentifier}>");
             sourceBuilder.AppendLine("    {");
             sourceBuilder.AppendLine($"        public {className}({TIdentifier} value)");
@@ -199,6 +201,19 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine($"        public static bool operator >=({className} left, {className} right)");
             sourceBuilder.AppendLine("        {");
             sourceBuilder.AppendLine("            return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;");
+            sourceBuilder.AppendLine("        }");
+            sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"        private sealed partial class {className}Converter : TypeToStringConverter<{className}>");
+            sourceBuilder.AppendLine("        {");
+            sourceBuilder.AppendLine($"            protected override string? InternalConvertToString({className} value)");
+            sourceBuilder.AppendLine("            {");
+            sourceBuilder.AppendLine("                return value.Value.ToString();");
+            sourceBuilder.AppendLine("            }");
+            sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"            protected override {className}? InternalConvertFromString(string value)");
+            sourceBuilder.AppendLine("            {");
+            sourceBuilder.AppendLine($"                return new {className}(Guid.Parse(value));");
+            sourceBuilder.AppendLine("            }");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine("    }");
 
