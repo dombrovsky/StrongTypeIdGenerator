@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-rc1</Version>
+    <Version>1.0.0-rc2</Version>
     <Authors>Volodymyr Dombrovskyi</Authors>
     <Copyright>Copyright (c) 2024 Volodymyr Dombrovskyi</Copyright>
     <RepositoryUrl>https://github.com/dombrovsky/StrongTypeIdGenerator.git</RepositoryUrl>

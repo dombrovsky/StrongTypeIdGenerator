@@ -105,6 +105,8 @@ namespace StrongTypeIdGenerator.Analyzer
                 sourceBuilder.AppendLine("{");
             }
 
+            sourceBuilder.AppendLine("    using System;");
+            sourceBuilder.AppendLine("    using StrongTypeIdGenerator;");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"    [System.ComponentModel.TypeConverter(typeof({className}Converter))]");
             sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifier<{className}, {TIdentifier}>");
