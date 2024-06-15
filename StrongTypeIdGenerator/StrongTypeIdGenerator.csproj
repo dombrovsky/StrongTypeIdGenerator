@@ -6,6 +6,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
     <IsRoslynComponent>true</IsRoslynComponent>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +22,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <ProjectReference Include="..\StrongTypeIdGenerator.Annotations\StrongTypeIdGenerator.Annotations.csproj" PrivateAssets="All" />
+    <ProjectReference Include="..\StrongTypeIdGenerator.Abstractions\StrongTypeIdGenerator.Abstractions.csproj" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

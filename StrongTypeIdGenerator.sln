@@ -11,11 +11,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrongTypeIdGenerator", "StrongTypeIdGenerator\StrongTypeIdGenerator.csproj", "{F8986E9E-3E63-4CE8-B214-327FB918F6DA}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypeIdGenerator", "StrongTypeIdGenerator\StrongTypeIdGenerator.csproj", "{F8986E9E-3E63-4CE8-B214-327FB918F6DA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrongTypeIdGenerator.Tests", "StrongTypeIdGenerator.Tests\StrongTypeIdGenerator.Tests.csproj", "{F44CA131-E9DC-4B7F-A775-94F9041B69FC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypeIdGenerator.Tests", "StrongTypeIdGenerator.Tests\StrongTypeIdGenerator.Tests.csproj", "{F44CA131-E9DC-4B7F-A775-94F9041B69FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrongTypeIdGenerator.Annotations", "StrongTypeIdGenerator.Annotations\StrongTypeIdGenerator.Annotations.csproj", "{D6F45F02-A86A-4336-8CA1-273C0163CA55}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypeIdGenerator.Abstractions", "StrongTypeIdGenerator.Abstractions\StrongTypeIdGenerator.Abstractions.csproj", "{D6F45F02-A86A-4336-8CA1-273C0163CA55}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -18,11 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\StrongTypeIdGenerator.Annotations\StrongTypeIdGenerator.Annotations.csproj" />
-    <ProjectReference Include="..\StrongTypeIdGenerator\StrongTypeIdGenerator.csproj"
-                      PrivateAssets="all"
-                      OutputItemType="Analyzer"
-                      ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\StrongTypeIdGenerator.Abstractions\StrongTypeIdGenerator.Abstractions.csproj" />
+    <ProjectReference Include="..\StrongTypeIdGenerator\StrongTypeIdGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>
