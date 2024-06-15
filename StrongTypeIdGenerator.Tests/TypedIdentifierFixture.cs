@@ -17,6 +17,7 @@ namespace StrongTypeIdGenerator.Tests
             Assert.That(sut1, Is.EqualTo(sut2).And.Not.SameAs(sut2));
         }
 
+#if NET7_0_OR_GREATER
         [Test]
         public void Equals_WhenSameIdButOneImplicitlyCasted_ReturnsTrue()
         {
@@ -27,6 +28,7 @@ namespace StrongTypeIdGenerator.Tests
 
             Assert.That(sut1, Is.EqualTo(sut2).And.Not.SameAs(sut2));
         }
+#endif
 
         [Test]
         public void GetHashCode_WhenSameId_ReturnsSameValue()
@@ -69,7 +71,10 @@ namespace StrongTypeIdGenerator.Tests
             var sut1 = CreateSut(idNull);
             var sut2 = CreateSut(idNull);
 
-            Assert.That(sut1, Is.EqualTo(sut2).And.EqualTo(TSut.Unspecified));
+            Assert.That(sut1, Is.EqualTo(sut2));
+#if NET7_0_OR_GREATER
+            Assert.That(sut1, Is.EqualTo(TSut.Unspecified));
+#endif
         }
 
         [Test]
