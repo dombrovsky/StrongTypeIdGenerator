@@ -3,6 +3,7 @@ namespace StrongTypeIdGenerator.Analyzer
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
+    using System;
     using System.Collections.Immutable;
     using System.Text;
 
@@ -64,8 +65,10 @@ namespace StrongTypeIdGenerator.Analyzer
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
+                var attributeSyntax = GetStringIdAttributeSyntax(classDeclaration);
+                var generateConstructorPrivate = GetGenerateConstructorPrivate(compilation, attributeSyntax);
 
-                var source = GenerateStrongTypeIdClass(namespaceName, className);
+                var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate);
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -90,8 +93,43 @@ namespace StrongTypeIdGenerator.Analyzer
 
             return null;
         }
+        static AttributeSyntax GetStringIdAttributeSyntax(ClassDeclarationSyntax classDeclaration)
+        {
+            foreach (var attributeListSyntax in classDeclaration.AttributeLists)
+            {
+                foreach (var attributeSyntax in attributeListSyntax.Attributes)
+                {
+                    if (attributeSyntax.Name.ToString() == "StringId")
+                    {
+                        return attributeSyntax;
+                    }
+                }
+            }
+            throw new InvalidOperationException("Expected class to have StringId attribute.");
+        }
 
-        static string GenerateStrongTypeIdClass(string? namespaceName, string className)
+        static bool GetGenerateConstructorPrivate(Compilation compilation, AttributeSyntax attributeSyntax)
+        {
+            var model = compilation.GetSemanticModel(attributeSyntax.SyntaxTree);
+            var attributeSymbol = model.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
+            if (attributeSymbol == null)
+            {
+                return false;
+            }
+
+            foreach (var argument in attributeSyntax.ArgumentList!.Arguments)
+            {
+                var argumentName = argument.NameEquals?.Name.Identifier.Text;
+                if (argumentName == "GenerateConstructorPrivate" && argument.Expression is LiteralExpressionSyntax literalExpression)
+                {
+                    return (bool)model.GetConstantValue(literalExpression).Value!;
+                }
+            }
+
+            return false;
+        }
+
+        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool generateConstructorPrivate)
         {
             const string TIdentifier = "string";
 
@@ -104,10 +142,19 @@ namespace StrongTypeIdGenerator.Analyzer
                 sourceBuilder.AppendLine("{");
             }
 
-            sourceBuilder.AppendLine($"    public partial class {className} : ITypedIdentifier<{TIdentifier}>");
+            sourceBuilder.AppendLine($"    public partial class {className} : ITypedIdentifier<{className},{TIdentifier}>");
             sourceBuilder.AppendLine("    {");
-            sourceBuilder.AppendLine($"        private {className}({TIdentifier} value)");
+            sourceBuilder.AppendLine($"        {(generateConstructorPrivate ? "private" : "public")} {className}({TIdentifier} value)");
             sourceBuilder.AppendLine("        {");
+
+            if (generateConstructorPrivate)
+            {
+                sourceBuilder.AppendLine("            if (value is null)");
+                sourceBuilder.AppendLine("            {");
+                sourceBuilder.AppendLine("                throw new ArgumentNullException(nameof(value));");
+                sourceBuilder.AppendLine("            }");
+            }
+
             sourceBuilder.AppendLine("            Value = value;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
