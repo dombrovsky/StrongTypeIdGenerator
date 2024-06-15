@@ -8,11 +8,10 @@ namespace StrongTypeIdGenerator.Analyzer
     using System.Text;
 
     [Generator]
-    public sealed class StringIdGenerator : IIncrementalGenerator
+    public sealed class GuidIdGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            // Find all classes with the StringIdentityAttribute
             IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: static (s, _) => IsSyntaxTargetForGeneration(s),
@@ -43,7 +42,7 @@ namespace StrongTypeIdGenerator.Analyzer
                 {
                     if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is IMethodSymbol attributeSymbol)
                     {
-                        if (attributeSymbol.ContainingType.ToDisplayString() == "StrongTypeIdGenerator.StringIdAttribute")
+                        if (attributeSymbol.ContainingType.ToDisplayString() == "StrongTypeIdGenerator.GuidIdAttribute")
                         {
                             return classDeclarationSyntax;
                         }
@@ -65,10 +64,8 @@ namespace StrongTypeIdGenerator.Analyzer
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
-                var attributeSyntax = GetStringIdAttributeSyntax(classDeclaration);
-                var generateConstructorPrivate = GetGenerateConstructorPrivate(compilation, attributeSyntax);
 
-                var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate);
+                var source = GenerateStrongTypeIdClass(namespaceName, className);
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -93,45 +90,10 @@ namespace StrongTypeIdGenerator.Analyzer
 
             return null;
         }
-        static AttributeSyntax GetStringIdAttributeSyntax(ClassDeclarationSyntax classDeclaration)
+
+        static string GenerateStrongTypeIdClass(string? namespaceName, string className)
         {
-            foreach (var attributeListSyntax in classDeclaration.AttributeLists)
-            {
-                foreach (var attributeSyntax in attributeListSyntax.Attributes)
-                {
-                    if (attributeSyntax.Name.ToString() == "StringId")
-                    {
-                        return attributeSyntax;
-                    }
-                }
-            }
-            throw new InvalidOperationException("Expected class to have StringId attribute.");
-        }
-
-        static bool GetGenerateConstructorPrivate(Compilation compilation, AttributeSyntax attributeSyntax)
-        {
-            var model = compilation.GetSemanticModel(attributeSyntax.SyntaxTree);
-            var attributeSymbol = model.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
-            if (attributeSymbol == null)
-            {
-                return false;
-            }
-
-            foreach (var argument in attributeSyntax.ArgumentList!.Arguments)
-            {
-                var argumentName = argument.NameEquals?.Name.Identifier.Text;
-                if (argumentName == "GenerateConstructorPrivate" && argument.Expression is LiteralExpressionSyntax literalExpression)
-                {
-                    return (bool)model.GetConstantValue(literalExpression).Value!;
-                }
-            }
-
-            return false;
-        }
-
-        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool generateConstructorPrivate)
-        {
-            const string TIdentifier = "string";
+            const string TIdentifier = "Guid";
 
             var sourceBuilder = new StringBuilder();
             sourceBuilder.AppendLine("#nullable enable");
@@ -144,17 +106,8 @@ namespace StrongTypeIdGenerator.Analyzer
 
             sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifier<{className}, {TIdentifier}>");
             sourceBuilder.AppendLine("    {");
-            sourceBuilder.AppendLine($"        {(generateConstructorPrivate ? "private" : "public")} {className}({TIdentifier} value)");
+            sourceBuilder.AppendLine($"        public {className}({TIdentifier} value)");
             sourceBuilder.AppendLine("        {");
-
-            if (!generateConstructorPrivate)
-            {
-                sourceBuilder.AppendLine("            if (value is null)");
-                sourceBuilder.AppendLine("            {");
-                sourceBuilder.AppendLine("                throw new ArgumentNullException(nameof(value));");
-                sourceBuilder.AppendLine("            }");
-                sourceBuilder.AppendLine();
-            }
 
             sourceBuilder.AppendLine("            Value = value;");
             sourceBuilder.AppendLine("        }");
@@ -165,7 +118,7 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static implicit operator {className}({TIdentifier} value)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            return {TIdentifier}.IsNullOrEmpty(value) ? Unspecified : new {className}(value);");
+            sourceBuilder.AppendLine($"            return value == Unspecified.Value ? Unspecified : new {className}(value);");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static implicit operator {TIdentifier}({className} value)");
@@ -190,7 +143,7 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public int CompareTo({className}? other)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return other is null ? 1 : string.Compare(Value, other.Value, StringComparison.Ordinal);");
+            sourceBuilder.AppendLine("            return other is null ? 1 : Value.CompareTo(other.Value);");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override bool Equals(object? obj)");
@@ -205,12 +158,12 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override string ToString()");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value;");
+            sourceBuilder.AppendLine("            return Value.ToString();");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public string ToString(string? format, IFormatProvider? formatProvider)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value;");
+            sourceBuilder.AppendLine("            return Value.ToString(format, formatProvider);");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator ==({className} left, {className} right)");
