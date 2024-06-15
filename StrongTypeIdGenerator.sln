@@ -17,6 +17,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypeIdGenerator.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StrongTypeIdGenerator.Abstractions", "StrongTypeIdGenerator.Abstractions\StrongTypeIdGenerator.Abstractions.csproj", "{D6F45F02-A86A-4336-8CA1-273C0163CA55}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StrongTypeIdGenerator.Json", "StrongTypeIdGenerator.Json\StrongTypeIdGenerator.Json.csproj", "{C05022B2-BE8F-45E1-8783-D738E1995E1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,6 +37,10 @@ Global
 		{D6F45F02-A86A-4336-8CA1-273C0163CA55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D6F45F02-A86A-4336-8CA1-273C0163CA55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D6F45F02-A86A-4336-8CA1-273C0163CA55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C05022B2-BE8F-45E1-8783-D738E1995E1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C05022B2-BE8F-45E1-8783-D738E1995E1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C05022B2-BE8F-45E1-8783-D738E1995E1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C05022B2-BE8F-45E1-8783-D738E1995E1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

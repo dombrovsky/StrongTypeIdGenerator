@@ -190,6 +190,11 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("                return true;");
             sourceBuilder.AppendLine("            }");
             sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"            if (other.GetType() != this.GetType())");
+            sourceBuilder.AppendLine("            {");
+            sourceBuilder.AppendLine("                return false;");
+            sourceBuilder.AppendLine("            }");
+            sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("            return Value.Equals(other.Value);");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();

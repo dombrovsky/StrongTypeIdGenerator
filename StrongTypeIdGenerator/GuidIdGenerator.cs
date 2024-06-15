@@ -1,6 +1,7 @@
 namespace StrongTypeIdGenerator.Analyzer
 {
     using Microsoft.CodeAnalysis;
+    using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
     using System;
@@ -138,6 +139,11 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("            if (ReferenceEquals(this, other))");
             sourceBuilder.AppendLine("            {");
             sourceBuilder.AppendLine("                return true;");
+            sourceBuilder.AppendLine("            }");
+            sourceBuilder.AppendLine();
+            sourceBuilder.AppendLine($"            if (other.GetType() != this.GetType())");
+            sourceBuilder.AppendLine("            {");
+            sourceBuilder.AppendLine("                return false;");
             sourceBuilder.AppendLine("            }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("            return Value.Equals(other.Value);");

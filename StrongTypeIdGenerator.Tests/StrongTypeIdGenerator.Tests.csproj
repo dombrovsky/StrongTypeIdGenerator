@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\StrongTypeIdGenerator.Abstractions\StrongTypeIdGenerator.Abstractions.csproj" />
+    <ProjectReference Include="..\StrongTypeIdGenerator.Json\StrongTypeIdGenerator.Json.csproj" />
     <ProjectReference Include="..\StrongTypeIdGenerator\StrongTypeIdGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
