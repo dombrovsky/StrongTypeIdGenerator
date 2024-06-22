@@ -36,7 +36,7 @@ namespace StrongTypeIdGenerator.Analyzer
         {
             var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
 
-            // Check if the class has the StrongTypeId attribute
+            // Check if the class has the GuidIdAttribute
             foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
             {
                 foreach (var attributeSyntax in attributeListSyntax.Attributes)
@@ -65,8 +65,9 @@ namespace StrongTypeIdGenerator.Analyzer
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
+                var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration);
 
-                var source = GenerateStrongTypeIdClass(namespaceName, className);
+                var source = GenerateStrongTypeIdClass(namespaceName, className, hasCheckValueMethod);
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -92,7 +93,33 @@ namespace StrongTypeIdGenerator.Analyzer
             return null;
         }
 
-        static string GenerateStrongTypeIdClass(string? namespaceName, string className)
+        static bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration)
+        {
+            var semanticModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
+            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
+            if (classSymbol is null)
+            {
+                return false;
+            }
+
+            var guidTypeSymbol = compilation.GetTypeByMetadataName("System.Guid");
+
+            foreach (var member in classSymbol.GetMembers("CheckValue"))
+            {
+                if (member is IMethodSymbol methodSymbol &&
+                    methodSymbol.IsStatic &&
+                    methodSymbol.DeclaredAccessibility == Accessibility.Private &&
+                    methodSymbol.Parameters.Length == 1 &&
+                    SymbolEqualityComparer.Default.Equals(methodSymbol.Parameters[0].Type, guidTypeSymbol))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool hasCheckValueMethod)
         {
             const string TIdentifier = "Guid";
 
@@ -113,6 +140,12 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("    {");
             sourceBuilder.AppendLine($"        public {className}({TIdentifier} value)");
             sourceBuilder.AppendLine("        {");
+
+            if (hasCheckValueMethod)
+            {
+                sourceBuilder.AppendLine("            CheckValue(value);");
+                sourceBuilder.AppendLine();
+            }
 
             sourceBuilder.AppendLine("            Value = value;");
             sourceBuilder.AppendLine("        }");

@@ -67,8 +67,9 @@ namespace StrongTypeIdGenerator.Analyzer
                 var namespaceName = GetNamespace(classDeclaration);
                 var attributeSyntax = GetStringIdAttributeSyntax(classDeclaration);
                 var generateConstructorPrivate = GetGenerateConstructorPrivate(compilation, attributeSyntax);
+                var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration);
 
-                var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate);
+                var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate, hasCheckValueMethod);
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -132,7 +133,31 @@ namespace StrongTypeIdGenerator.Analyzer
             return false;
         }
 
-        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool generateConstructorPrivate)
+        static bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration)
+        {
+            var semanticModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
+            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
+            if (classSymbol == null)
+            {
+                return false;
+            }
+
+            foreach (var member in classSymbol.GetMembers("CheckValue"))
+            {
+                if (member is IMethodSymbol methodSymbol &&
+                    methodSymbol.IsStatic &&
+                    methodSymbol.DeclaredAccessibility == Accessibility.Private &&
+                    methodSymbol.Parameters.Length == 1 &&
+                    methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool generateConstructorPrivate, bool hasCheckValueMethod)
         {
             const string TIdentifier = "string";
 
@@ -160,6 +185,12 @@ namespace StrongTypeIdGenerator.Analyzer
                 sourceBuilder.AppendLine("            {");
                 sourceBuilder.AppendLine("                throw new ArgumentNullException(nameof(value));");
                 sourceBuilder.AppendLine("            }");
+                sourceBuilder.AppendLine();
+            }
+
+            if (hasCheckValueMethod)
+            {
+                sourceBuilder.AppendLine("            CheckValue(value);");
                 sourceBuilder.AppendLine();
             }
 
