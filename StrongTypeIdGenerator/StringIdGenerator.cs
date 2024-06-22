@@ -8,53 +8,16 @@ namespace StrongTypeIdGenerator.Analyzer
     using System.Text;
 
     [Generator]
-    public sealed class StringIdGenerator : IIncrementalGenerator
+    public sealed class StringIdGenerator : BaseIdGenerator
     {
-        public void Initialize(IncrementalGeneratorInitializationContext context)
+        protected override string MarkerAttributeFullName => "StrongTypeIdGenerator.StringIdAttribute";
+
+        protected override INamedTypeSymbol GetIdTypeSymbol(Compilation compilation)
         {
-            // Find all classes with the StringIdentityAttribute
-            IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = context.SyntaxProvider
-                .CreateSyntaxProvider(
-                    predicate: static (s, _) => IsSyntaxTargetForGeneration(s),
-                    transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
-                .Where(static m => m is not null)!;
-
-            // Combine the selected class declarations with the compilation
-            IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses =
-                context.CompilationProvider.Combine(classDeclarations.Collect());
-
-            // Generate the source code
-            context.RegisterSourceOutput(compilationAndClasses,
-                static (spc, source) => Execute(source.Item1, source.Item2, spc));
+            return compilation.GetTypeByMetadataName("System.String")!;
         }
 
-        static bool IsSyntaxTargetForGeneration(SyntaxNode node) =>
-            node is ClassDeclarationSyntax classDeclaration &&
-            classDeclaration.AttributeLists.Count > 0;
-
-        static ClassDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
-        {
-            var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
-
-            // Check if the class has the StrongTypeId attribute
-            foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
-            {
-                foreach (var attributeSyntax in attributeListSyntax.Attributes)
-                {
-                    if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is IMethodSymbol attributeSymbol)
-                    {
-                        if (attributeSymbol.ContainingType.ToDisplayString() == "StrongTypeIdGenerator.StringIdAttribute")
-                        {
-                            return classDeclarationSyntax;
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        static void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
+        protected override void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
         {
             if (classes.IsDefaultOrEmpty)
             {
@@ -75,25 +38,6 @@ namespace StrongTypeIdGenerator.Analyzer
             }
         }
 
-        static string? GetNamespace(ClassDeclarationSyntax classDeclaration)
-        {
-            // Walk upwards until we find the namespace declaration
-            SyntaxNode? potentialNamespaceParent = classDeclaration.Parent;
-            while (potentialNamespaceParent != null &&
-                   potentialNamespaceParent is not NamespaceDeclarationSyntax &&
-                   potentialNamespaceParent is not FileScopedNamespaceDeclarationSyntax)
-            {
-                potentialNamespaceParent = potentialNamespaceParent.Parent;
-            }
-
-            // Return the namespace name if it was found, otherwise null
-            if (potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceDeclaration)
-            {
-                return namespaceDeclaration.Name.ToString();
-            }
-
-            return null;
-        }
         static AttributeSyntax GetStringIdAttributeSyntax(ClassDeclarationSyntax classDeclaration)
         {
             foreach (var attributeListSyntax in classDeclaration.AttributeLists)
@@ -127,30 +71,6 @@ namespace StrongTypeIdGenerator.Analyzer
                     {
                         return (bool)model.GetConstantValue(literalExpression).Value!;
                     }
-                }
-            }
-
-            return false;
-        }
-
-        static bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration)
-        {
-            var semanticModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
-            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
-            if (classSymbol == null)
-            {
-                return false;
-            }
-
-            foreach (var member in classSymbol.GetMembers("CheckValue"))
-            {
-                if (member is IMethodSymbol methodSymbol &&
-                    methodSymbol.IsStatic &&
-                    methodSymbol.DeclaredAccessibility == Accessibility.Private &&
-                    methodSymbol.Parameters.Length == 1 &&
-                    methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String)
-                {
-                    return true;
                 }
             }
 

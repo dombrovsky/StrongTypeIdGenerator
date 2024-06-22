@@ -4,57 +4,20 @@ namespace StrongTypeIdGenerator.Analyzer
     using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
-    using System;
     using System.Collections.Immutable;
     using System.Text;
 
     [Generator]
-    public sealed class GuidIdGenerator : IIncrementalGenerator
+    public sealed class GuidIdGenerator : BaseIdGenerator
     {
-        public void Initialize(IncrementalGeneratorInitializationContext context)
+        protected override string MarkerAttributeFullName => "StrongTypeIdGenerator.GuidIdAttribute";
+
+        protected override INamedTypeSymbol GetIdTypeSymbol(Compilation compilation)
         {
-            IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = context.SyntaxProvider
-                .CreateSyntaxProvider(
-                    predicate: static (s, _) => IsSyntaxTargetForGeneration(s),
-                    transform: static (ctx, _) => GetSemanticTargetForGeneration(ctx))
-                .Where(static m => m is not null)!;
-
-            // Combine the selected class declarations with the compilation
-            IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses =
-                context.CompilationProvider.Combine(classDeclarations.Collect());
-
-            // Generate the source code
-            context.RegisterSourceOutput(compilationAndClasses,
-                static (spc, source) => Execute(source.Item1, source.Item2, spc));
+            return compilation.GetTypeByMetadataName("System.Guid")!;
         }
 
-        static bool IsSyntaxTargetForGeneration(SyntaxNode node) =>
-            node is ClassDeclarationSyntax classDeclaration &&
-            classDeclaration.AttributeLists.Count > 0;
-
-        static ClassDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
-        {
-            var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
-
-            // Check if the class has the GuidIdAttribute
-            foreach (var attributeListSyntax in classDeclarationSyntax.AttributeLists)
-            {
-                foreach (var attributeSyntax in attributeListSyntax.Attributes)
-                {
-                    if (context.SemanticModel.GetSymbolInfo(attributeSyntax).Symbol is IMethodSymbol attributeSymbol)
-                    {
-                        if (attributeSymbol.ContainingType.ToDisplayString() == "StrongTypeIdGenerator.GuidIdAttribute")
-                        {
-                            return classDeclarationSyntax;
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        static void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
+        protected override void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
         {
             if (classes.IsDefaultOrEmpty)
             {
@@ -71,52 +34,6 @@ namespace StrongTypeIdGenerator.Analyzer
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
-        }
-
-        static string? GetNamespace(ClassDeclarationSyntax classDeclaration)
-        {
-            // Walk upwards until we find the namespace declaration
-            SyntaxNode? potentialNamespaceParent = classDeclaration.Parent;
-            while (potentialNamespaceParent != null &&
-                   potentialNamespaceParent is not NamespaceDeclarationSyntax &&
-                   potentialNamespaceParent is not FileScopedNamespaceDeclarationSyntax)
-            {
-                potentialNamespaceParent = potentialNamespaceParent.Parent;
-            }
-
-            // Return the namespace name if it was found, otherwise null
-            if (potentialNamespaceParent is BaseNamespaceDeclarationSyntax namespaceDeclaration)
-            {
-                return namespaceDeclaration.Name.ToString();
-            }
-
-            return null;
-        }
-
-        static bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration)
-        {
-            var semanticModel = compilation.GetSemanticModel(classDeclaration.SyntaxTree);
-            var classSymbol = semanticModel.GetDeclaredSymbol(classDeclaration) as INamedTypeSymbol;
-            if (classSymbol is null)
-            {
-                return false;
-            }
-
-            var guidTypeSymbol = compilation.GetTypeByMetadataName("System.Guid");
-
-            foreach (var member in classSymbol.GetMembers("CheckValue"))
-            {
-                if (member is IMethodSymbol methodSymbol &&
-                    methodSymbol.IsStatic &&
-                    methodSymbol.DeclaredAccessibility == Accessibility.Private &&
-                    methodSymbol.Parameters.Length == 1 &&
-                    SymbolEqualityComparer.Default.Equals(methodSymbol.Parameters[0].Type, guidTypeSymbol))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool hasCheckValueMethod)
