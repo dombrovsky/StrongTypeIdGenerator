@@ -3,14 +3,14 @@
 StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid and string-based identifiers.
 
 Define this:
-```
+```csharp
 [StringId]
 partial class FooId
 {
 }
 ```
 and get this generated:
-```
+```csharp
 [System.ComponentModel.TypeConverter(typeof(FooIdConverter))]
 partial class FooId : IEquatable<FooId>, IComparable<FooId>, IFormattable
 {
@@ -79,7 +79,7 @@ Being able to protect invariants and not allow instance of id with invalid value
 StrongTypeIdGenerator only defines `System.ComponentModel.TypeConverter` that can convert to and from `string`. No `System.Text.Json` or `Newtonsoft.Json` or EF Core converters defined.
 #### Ability to define custom id precondition checks.
 If Id class defines method `static void CheckValue(string value)`, what method would be called from generated constructor.
-```
+```csharp
 [StringId]
 partial class FooId
 {
@@ -105,7 +105,7 @@ Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator. Make sur
 
 ## Usage
 Just define your Id type like that
-```
+```csharp
 [StringId]
 public sealed partial class FooId
 {
