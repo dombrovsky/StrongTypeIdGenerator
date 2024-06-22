@@ -8,6 +8,13 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IncludeSymbols>false</IncludeSymbols>
     <NoWarn>NU5128</NoWarn>
+
+    <PackageTags>string-id,guid-id,strong-typed-id,strongly-typed,identifier,source-generator,generator</PackageTags>
+    <Description>
+      StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid and string-based identifiers.
+
+      This is a meta-package that includes all necessary components to use StrongTypeIdGenerator in your project.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
