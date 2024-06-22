@@ -60,11 +60,14 @@ namespace StrongTypeIdGenerator.Analyzer
 
             if (hasCheckValueMethod)
             {
-                sourceBuilder.AppendLine("            CheckValue(value);");
+                sourceBuilder.AppendLine("            Value = CheckValue(value);");
                 sourceBuilder.AppendLine();
             }
+            else
+            {
+                sourceBuilder.AppendLine("            Value = value;");
+            }
 
-            sourceBuilder.AppendLine("            Value = value;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static {className} Unspecified {{ get; }} = new {className}({TIdentifier}.Empty);");

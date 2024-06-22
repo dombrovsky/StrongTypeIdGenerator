@@ -20,6 +20,20 @@ namespace StrongTypeIdGenerator.Tests
         }
 
         [Test]
+        public void Constructor_ValidValue_CheckValueModifiesValue()
+        {
+            // Arrange
+            CheckValueStringId id = null!;
+            var value = new string('a', 9);
+
+            // Act
+            id = new CheckValueStringId(value);
+
+            // Assert
+            Assert.That(id.Value, Is.EqualTo(new string('A', 9)));
+        }
+
+        [Test]
         public void ImplicitCast_CheckValueIsCalled()
         {
             // Arrange

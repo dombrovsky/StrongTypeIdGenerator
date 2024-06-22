@@ -6,6 +6,20 @@ namespace StrongTypeIdGenerator.Tests
     internal sealed class CustomCheckValueGuidIdFixture
     {
         [Test]
+        public void Constructor_ValidValue_CheckValueModifiesValue()
+        {
+            // Arrange
+            CheckValueGuidId id = null!;
+            var value = Guid.Parse("3A891E7E-506A-4A05-BF81-2F8D6544CBAB");
+
+            // Act
+            id = new CheckValueGuidId(value);
+
+            // Assert
+            Assert.That(id.Value, Is.EqualTo(CheckValueGuidId.ValidValue));
+        }
+
+        [Test]
         public void Constructor_CheckValueIsCalled()
         {
             // Arrange

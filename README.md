@@ -82,17 +82,19 @@ This way Id types can be defined in `netstandard2.0` libraries with no additiona
 
 The proposed way to use generated Id classes in serialization e.g. with `System.Text.Json` is to provide [custom JsonConverterFactory](https://github.com/dombrovsky/StrongTypeIdGenerator/blob/main/StrongTypeIdGenerator.Json/TypeConverterJsonConverterFactory.cs) to serializer, that would utilize generated `TypeConverter`.
 #### Ability to define custom id precondition checks.
-If Id class defines method `static void CheckValue(string value)`, that method would be called from generated constructor.
+If Id class defines method `static string CheckValue(string value)`, that method would be called from generated constructor.
 ```csharp
 [StringId]
 partial class FooId
 {
-    private static void CheckValue(string value)
+    private static string CheckValue(string value)
     {
         if (value.Length > 10)
         {
             throw new ArgumentException("Value is too long", nameof(value));
         }
+
+        return value;
     }
 }
 ```
