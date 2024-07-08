@@ -91,6 +91,7 @@ namespace StrongTypeIdGenerator.Analyzer
             }
 
             sourceBuilder.AppendLine("    using System;");
+            sourceBuilder.AppendLine("    using System.Diagnostics.CodeAnalysis;");
             sourceBuilder.AppendLine("    using StrongTypeIdGenerator;");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"    [System.ComponentModel.TypeConverter(typeof({className}Converter))]");
@@ -124,14 +125,16 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public {TIdentifier} Value {{ get; }}");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public static implicit operator {className}({TIdentifier} value)");
+            sourceBuilder.AppendLine("        [return: NotNullIfNotNull(nameof(value))]");
+            sourceBuilder.AppendLine($"        public static implicit operator {className}?({TIdentifier}? value)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            return {TIdentifier}.IsNullOrEmpty(value) ? Unspecified : new {className}(value);");
+            sourceBuilder.AppendLine($"            return value is null ? null : new {className}(value);");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public static implicit operator {TIdentifier}({className} value)");
+            sourceBuilder.AppendLine("        [return: NotNullIfNotNull(nameof(value))]");
+            sourceBuilder.AppendLine($"        public static implicit operator {TIdentifier}?({className}? value)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            return value?.Value ?? {TIdentifier}.Empty;");
+            sourceBuilder.AppendLine($"            return value?.Value ?? null;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public bool Equals({className}? other)");
