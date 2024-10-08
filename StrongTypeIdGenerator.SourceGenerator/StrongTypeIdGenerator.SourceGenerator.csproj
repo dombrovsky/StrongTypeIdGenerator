@@ -6,7 +6,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <IsPackable>true</IsPackable>
+    <IsPackable>false</IsPackable>
     <PackageId>StrongTypeIdGenerator.SourceGenerator</PackageId>
     <PackageTags>string-id,guid-id,strong-typed-id,strongly-typed,identifier,source-generator,generator</PackageTags>
     <Description>

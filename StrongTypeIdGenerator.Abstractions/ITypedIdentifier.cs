@@ -10,9 +10,12 @@ namespace StrongTypeIdGenerator
     {
         TIdentifier Value { get; }
     }
-
+#if NET7_0_OR_GREATER
     public interface ITypedIdentifier<TSelf, TIdentifier> :
-        ITypedIdentifier<TIdentifier>,
+#else
+    public interface ITypedIdentifier<TSelf, out TIdentifier> :
+#endif
+    ITypedIdentifier<TIdentifier>,
         IEquatable<TSelf>,
         IComparable<TSelf>,
         IFormattable

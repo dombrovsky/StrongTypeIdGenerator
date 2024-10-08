@@ -1,4 +1,4 @@
-namespace StrongTypeIdGenerator.Tests
+namespace StrongTypeIdGenerator.Json.Tests
 {
     using StrongTypeIdGenerator.Json;
     using System.Text.Json;

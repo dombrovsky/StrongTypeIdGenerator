@@ -1,7 +1,7 @@
 namespace StrongTypeIdGenerator.Tests
 {
     [GuidId]
-    internal partial class TestGuidId
+    public partial class TestGuidId
     {
     }
 }

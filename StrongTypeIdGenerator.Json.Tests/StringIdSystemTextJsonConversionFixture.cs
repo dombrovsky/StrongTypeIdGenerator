@@ -1,5 +1,7 @@
-namespace StrongTypeIdGenerator.Tests
+namespace StrongTypeIdGenerator.Json.Tests
 {
+    using StrongTypeIdGenerator.Tests;
+
     internal sealed class StringIdSystemTextJsonConversionFixture : SystemTextJsonConversionFixture<TestStringId, string>
     {
         protected override string GetValue()

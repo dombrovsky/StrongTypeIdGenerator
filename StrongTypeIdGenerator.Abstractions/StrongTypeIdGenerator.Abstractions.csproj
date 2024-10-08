@@ -3,20 +3,30 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0;net7.0;net8.0</TargetFrameworks>
     <RootNamespace>StrongTypeIdGenerator</RootNamespace>
-    <PackageId>StrongTypeIdGenerator.Abstractions</PackageId>
+    <PackageId>StrongTypeIdGenerator</PackageId>
     <IsPackable>true</IsPackable>
 
     <PackageTags>string-id,guid-id,strong-typed-id,strongly-typed,identifier,source-generator,generator</PackageTags>
     <Description>
       StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid and string-based identifiers.
-
-      This package contains attributes and base types used by generated id types.
     </Description>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\LICENSE" Pack="true" PackagePath="\" />
     <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StrongTypeIdGenerator.SourceGenerator\StrongTypeIdGenerator.SourceGenerator.csproj" Pack="false">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Content</OutputItemType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(OutputPath)\netstandard2.0\StrongTypeIdGenerator.SourceGenerator.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
 
 </Project>

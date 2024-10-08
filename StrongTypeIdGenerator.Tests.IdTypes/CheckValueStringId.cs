@@ -1,7 +1,7 @@
 namespace StrongTypeIdGenerator.Tests
 {
     [StringId]
-    internal partial class CheckValueStringId
+    public partial class CheckValueStringId
     {
         private static string CheckValue(string value)
         {

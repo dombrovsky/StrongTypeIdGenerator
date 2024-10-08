@@ -1,5 +1,7 @@
-namespace StrongTypeIdGenerator.Tests
+namespace StrongTypeIdGenerator.Json.Tests
 {
+    using StrongTypeIdGenerator.Tests;
+
     internal sealed class GuidIdSystemTextJsonConversionFixture : SystemTextJsonConversionFixture<TestGuidId, Guid>
     {
         protected override Guid GetValue()
