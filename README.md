@@ -100,9 +100,9 @@ partial class FooId
 ```
 
 ## Installation
-Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator. Make sure to specify `PrivateAssets="all"`:
+Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator.
 ```
-<PackageReference Include="StrongTypeIdGenerator" Version="1.0.0" PrivateAssets="all" />
+<PackageReference Include="StrongTypeIdGenerator" Version="1.0.0" />
 ```
 
 ## Usage
