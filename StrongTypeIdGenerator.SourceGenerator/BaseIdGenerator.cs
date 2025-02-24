@@ -5,19 +5,19 @@ namespace StrongTypeIdGenerator.Analyzer
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using System;
     using System.Collections.Immutable;
+    using System.Linq;
 
     public abstract class BaseIdGenerator : IIncrementalGenerator
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            IncrementalValuesProvider<ClassDeclarationSyntax> classDeclarations = context.SyntaxProvider
+            var classDeclarations = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: static (s, _) => IsSyntaxTargetForGeneration(s),
                     transform: (ctx, _) => GetSemanticTargetForGeneration(ctx))
                 .Where(static m => m is not null)!;
 
-            IncrementalValueProvider<(Compilation, ImmutableArray<ClassDeclarationSyntax>)> compilationAndClasses =
-                context.CompilationProvider.Combine(classDeclarations.Collect());
+            var compilationAndClasses = context.CompilationProvider.Combine(classDeclarations.Collect());
 
             context.RegisterSourceOutput(compilationAndClasses,
                 (spc, source) => Execute(source.Item1, source.Item2, spc));
@@ -27,7 +27,18 @@ namespace StrongTypeIdGenerator.Analyzer
             node is ClassDeclarationSyntax classDeclaration &&
             classDeclaration.AttributeLists.Count > 0;
 
-        private ClassDeclarationSyntax? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
+        protected static T GetAttributeValue<T>(AttributeData attributeData, string memberName, T fallbackValue)
+        {
+            if (attributeData == null)
+            {
+                throw new ArgumentNullException(nameof(attributeData));
+            }
+
+            var value = attributeData.NamedArguments.FirstOrDefault(pair => pair.Key == memberName).Value.Value;
+            return value is T tValue ? tValue : fallbackValue;
+        }
+
+        private (ClassDeclarationSyntax ClassSyntax, AttributeData Attribute)? GetSemanticTargetForGeneration(GeneratorSyntaxContext context)
         {
             var classDeclarationSyntax = (ClassDeclarationSyntax)context.Node;
 
@@ -39,7 +50,15 @@ namespace StrongTypeIdGenerator.Analyzer
                     {
                         if (attributeSymbol.ContainingType.ToDisplayString() == MarkerAttributeFullName)
                         {
-                            return classDeclarationSyntax;
+                            // Retrieve the full attribute data
+                            var attributeData = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax)?
+                                .GetAttributes()
+                                .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == MarkerAttributeFullName);
+
+                            if (attributeData is not null)
+                            {
+                                return (classDeclarationSyntax, attributeData);
+                            }
                         }
                     }
                 }
@@ -52,7 +71,7 @@ namespace StrongTypeIdGenerator.Analyzer
 
         protected abstract INamedTypeSymbol GetIdTypeSymbol(Compilation compilation);
 
-        protected abstract void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context);
+        protected abstract void Execute(Compilation compilation, ImmutableArray<(ClassDeclarationSyntax ClassSyntax, AttributeData Attribute)?> classes, SourceProductionContext context);
 
         protected static string? GetNamespace(ClassDeclarationSyntax classDeclaration)
         {

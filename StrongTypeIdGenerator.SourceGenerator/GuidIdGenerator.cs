@@ -1,10 +1,10 @@
 namespace StrongTypeIdGenerator.Analyzer
 {
     using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
     using System.Collections.Immutable;
+    using System.Linq;
     using System.Text;
 
     [Generator]
@@ -17,14 +17,14 @@ namespace StrongTypeIdGenerator.Analyzer
             return compilation.GetTypeByMetadataName("System.Guid")!;
         }
 
-        protected override void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
+        protected override void Execute(Compilation compilation, ImmutableArray<(ClassDeclarationSyntax ClassSyntax, AttributeData Attribute)?> classes, SourceProductionContext context)
         {
             if (classes.IsDefaultOrEmpty)
             {
                 return;
             }
 
-            foreach (var classDeclaration in classes)
+            foreach (var (classDeclaration, attributeData) in classes.Where(x => x.HasValue).Select(tuple => tuple!.Value))
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
@@ -61,7 +61,6 @@ namespace StrongTypeIdGenerator.Analyzer
             if (hasCheckValueMethod)
             {
                 sourceBuilder.AppendLine("            Value = CheckValue(value);");
-                sourceBuilder.AppendLine();
             }
             else
             {

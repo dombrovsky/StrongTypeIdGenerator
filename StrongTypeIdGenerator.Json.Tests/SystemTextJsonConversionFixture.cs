@@ -3,7 +3,7 @@ namespace StrongTypeIdGenerator.Json.Tests
     using StrongTypeIdGenerator.Json;
     using System.Text.Json;
 
-    public abstract class SystemTextJsonConversionFixture<TId, TIdentifier>
+    internal abstract class SystemTextJsonConversionFixture<TId, TIdentifier>
         where TId : ITypedIdentifier<TId, TIdentifier>
         where TIdentifier : IEquatable<TIdentifier>
     {

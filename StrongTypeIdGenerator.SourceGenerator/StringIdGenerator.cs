@@ -3,8 +3,8 @@ namespace StrongTypeIdGenerator.Analyzer
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
-    using System;
     using System.Collections.Immutable;
+    using System.Linq;
     using System.Text;
 
     [Generator]
@@ -17,64 +17,24 @@ namespace StrongTypeIdGenerator.Analyzer
             return compilation.GetTypeByMetadataName("System.String")!;
         }
 
-        protected override void Execute(Compilation compilation, ImmutableArray<ClassDeclarationSyntax> classes, SourceProductionContext context)
+        protected override void Execute(Compilation compilation, ImmutableArray<(ClassDeclarationSyntax ClassSyntax, AttributeData Attribute)?> classes, SourceProductionContext context)
         {
             if (classes.IsDefaultOrEmpty)
             {
                 return;
             }
 
-            foreach (var classDeclaration in classes)
+            foreach (var (classDeclaration, attributeData) in classes.Where(x => x.HasValue).Select(tuple => tuple!.Value))
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
-                var attributeSyntax = GetStringIdAttributeSyntax(classDeclaration);
-                var generateConstructorPrivate = GetGenerateConstructorPrivate(compilation, attributeSyntax);
+                var generateConstructorPrivate = GetAttributeValue(attributeData, "GenerateConstructorPrivate", fallbackValue: false);
                 var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration);
 
                 var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate, hasCheckValueMethod);
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
-        }
-
-        static AttributeSyntax GetStringIdAttributeSyntax(ClassDeclarationSyntax classDeclaration)
-        {
-            foreach (var attributeListSyntax in classDeclaration.AttributeLists)
-            {
-                foreach (var attributeSyntax in attributeListSyntax.Attributes)
-                {
-                    if (attributeSyntax.Name.ToString() == "StringId")
-                    {
-                        return attributeSyntax;
-                    }
-                }
-            }
-            throw new InvalidOperationException("Expected class to have StringId attribute.");
-        }
-
-        static bool GetGenerateConstructorPrivate(Compilation compilation, AttributeSyntax attributeSyntax)
-        {
-            var model = compilation.GetSemanticModel(attributeSyntax.SyntaxTree);
-            var attributeSymbol = model.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
-            if (attributeSymbol == null)
-            {
-                return false;
-            }
-
-            if (attributeSyntax.ArgumentList != null)
-            {
-                foreach (var argument in attributeSyntax.ArgumentList.Arguments)
-                {
-                    var argumentName = argument.NameEquals?.Name.Identifier.Text;
-                    if (argumentName == "GenerateConstructorPrivate" && argument.Expression is LiteralExpressionSyntax literalExpression)
-                    {
-                        return (bool)model.GetConstantValue(literalExpression).Value!;
-                    }
-                }
-            }
-
-            return false;
         }
 
         static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool generateConstructorPrivate, bool hasCheckValueMethod)
@@ -112,7 +72,6 @@ namespace StrongTypeIdGenerator.Analyzer
             if (hasCheckValueMethod)
             {
                 sourceBuilder.AppendLine("            Value = CheckValue(value);");
-                sourceBuilder.AppendLine();
             }
             else
             {
