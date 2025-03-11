@@ -27,7 +27,7 @@ namespace StrongTypeIdGenerator.Analyzer
             node is ClassDeclarationSyntax classDeclaration &&
             classDeclaration.AttributeLists.Count > 0;
 
-        protected static T GetAttributeValue<T>(AttributeData attributeData, string memberName, T fallbackValue)
+        protected static T GetAttributeArgumentValue<T>(AttributeData attributeData, string memberName, T fallbackValue)
         {
             if (attributeData == null)
             {
@@ -69,7 +69,7 @@ namespace StrongTypeIdGenerator.Analyzer
 
         protected abstract string MarkerAttributeFullName { get; }
 
-        protected abstract INamedTypeSymbol GetIdTypeSymbol(Compilation compilation);
+        protected abstract INamedTypeSymbol GetIdTypeSymbol(Compilation compilation, AttributeData attributeData);
 
         protected abstract void Execute(Compilation compilation, ImmutableArray<(ClassDeclarationSyntax ClassSyntax, AttributeData Attribute)?> classes, SourceProductionContext context);
 
@@ -98,7 +98,7 @@ namespace StrongTypeIdGenerator.Analyzer
             return null;
         }
 
-        protected bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration)
+        protected bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration, AttributeData attributeData)
         {
             if (compilation is null)
             {
@@ -117,7 +117,7 @@ namespace StrongTypeIdGenerator.Analyzer
                 return false;
             }
 
-            var idTypeSymbol = GetIdTypeSymbol(compilation);
+            var idTypeSymbol = GetIdTypeSymbol(compilation, attributeData);
 
             foreach (var member in classSymbol.GetMembers("CheckValue"))
             {

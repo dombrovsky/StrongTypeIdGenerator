@@ -3,7 +3,7 @@ namespace StrongTypeIdGenerator
     using System;
 
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class GuidIdAttribute : BaseIdAttribute
+    public abstract class BaseIdAttribute : Attribute
     {
     }
 }
