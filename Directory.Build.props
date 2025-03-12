@@ -12,9 +12,9 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Version>1.0.0-rc5</Version>
+    <Version>1.0.0-rc6</Version>
     <Authors>Volodymyr Dombrovskyi</Authors>
-    <Copyright>Copyright (c) 2024 Volodymyr Dombrovskyi</Copyright>
+    <Copyright>Copyright (c) 2024-2025 Volodymyr Dombrovskyi</Copyright>
     <RepositoryUrl>https://github.com/dombrovsky/StrongTypeIdGenerator.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/dombrovsky/StrongTypeIdGenerator</PackageProjectUrl>
@@ -44,7 +44,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

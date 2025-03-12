@@ -12,7 +12,7 @@ namespace StrongTypeIdGenerator.Analyzer
     {
         protected override string MarkerAttributeFullName => "StrongTypeIdGenerator.StringIdAttribute";
 
-        protected override INamedTypeSymbol GetIdTypeSymbol(Compilation compilation)
+        protected override INamedTypeSymbol GetIdTypeSymbol(Compilation compilation, AttributeData attributeData)
         {
             return compilation.GetTypeByMetadataName("System.String")!;
         }
@@ -28,8 +28,8 @@ namespace StrongTypeIdGenerator.Analyzer
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
-                var generateConstructorPrivate = GetAttributeValue(attributeData, "GenerateConstructorPrivate", fallbackValue: false);
-                var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration);
+                var generateConstructorPrivate = GetAttributeArgumentValue(attributeData, "GenerateConstructorPrivate", fallbackValue: false);
+                var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData);
 
                 var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate, hasCheckValueMethod);
 
