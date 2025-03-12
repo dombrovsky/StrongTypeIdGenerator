@@ -26,6 +26,8 @@ jobs:
         dotnet-version: | 
           6.0.x
           8.0.x
+    - name: Install Mono
+      run: sudo apt-get update && sudo apt-get install -y mono-complete
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
