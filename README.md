@@ -5,7 +5,7 @@ StrongTypeIdGenerator is a source generator that helps you create strongly-typed
 ## Installation
 Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator.
 ```
-<PackageReference Include="StrongTypeIdGenerator" Version="1.0.0" />
+<PackageReference Include="StrongTypeIdGenerator" />
 ```
 
 ## Getting Started
