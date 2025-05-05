@@ -3,18 +3,26 @@ namespace StrongTypeIdGenerator.Analyzer
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
+    using System;
+    using System.Collections.Generic;
     using System.Collections.Immutable;
+    using System.Diagnostics;
     using System.Linq;
     using System.Text;
 
     [Generator]
-    public sealed class GuidIdGenerator : BaseIdGenerator
+    public sealed class CombinedIdGenerator : BaseIdGenerator
     {
-        protected override string MarkerAttributeFullName => "StrongTypeIdGenerator.GuidIdAttribute";
+        protected override string MarkerAttributeFullName => "StrongTypeIdGenerator.CombinedIdAttribute";
 
         protected override INamedTypeSymbol GetIdTypeSymbol(Compilation compilation, AttributeData attributeData)
         {
-            return compilation.GetTypeByMetadataName("System.Guid")!;
+            var components = GetComponents(attributeData);
+
+            var tupleType = compilation.CreateTupleTypeSymbol(
+                components.Types.Cast<ITypeSymbol>().ToImmutableArray(),
+                components.Names.Cast<string?>().ToImmutableArray());
+            return tupleType;
         }
 
         protected override void Execute(Compilation compilation, ImmutableArray<(ClassDeclarationSyntax ClassSyntax, AttributeData Attribute)?> classes, SourceProductionContext context)
@@ -29,16 +37,77 @@ namespace StrongTypeIdGenerator.Analyzer
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
                 var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData);
+                var components = GetComponents(attributeData);
+                var source = GenerateCombinedIdClass(compilation, namespaceName, className, components.Types, components.Names, hasCheckValueMethod);
 
-                var source = GenerateStrongTypeIdClass(namespaceName, className, hasCheckValueMethod);
-
-                context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
+                context.AddSource($"{className}_CombinedId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
         }
 
-        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool hasCheckValueMethod)
+        private static (INamedTypeSymbol[] Types, string[] Names) GetComponents(AttributeData attributeData)
         {
-            const string TIdentifier = "Guid";
+            var componentDescriptors = attributeData.ConstructorArguments;
+            var types = componentDescriptors.Select(cd => cd.Value as INamedTypeSymbol).Where(symbol => symbol != null).Cast<INamedTypeSymbol>().ToArray();
+            var names = componentDescriptors.Select(cd => cd.Value as string).Where(s => s != null).Cast<string>().ToArray();
+            return (types, names);
+        }
+
+        private static string GenerateCombinedIdClass(Compilation compilation, string? namespaceName, string className, INamedTypeSymbol[] types, string[] names, bool hasCheckValueMethod)
+        {
+            IEnumerable<string> GetDefaultValueDefinitions()
+            {
+                foreach (var typeSymbol in types)
+                {
+                    if (typeSymbol == null)
+                    {
+                        throw new InvalidOperationException("Type symbol is null");
+                    }
+
+                    var baseIdAttribute = compilation.GetTypeByMetadataName("StrongTypeIdGenerator.BaseIdAttribute");
+                    var isAnotherStrongIdType = baseIdAttribute != null && typeSymbol.GetAttributes().Any(attr => InheritsFrom(attr.AttributeClass, baseIdAttribute));
+                    if (isAnotherStrongIdType)
+                    {
+                        yield return $"{typeSymbol.ToDisplayString()}.Unspecified";
+                        continue;
+                    }
+
+                    var equatableInterface = compilation.GetTypeByMetadataName("System.IEquatable`1");
+                    if (equatableInterface == null || !typeSymbol.AllInterfaces.Any(i => SymbolEqualityComparer.Default.Equals(i.OriginalDefinition, equatableInterface) && SymbolEqualityComparer.Default.Equals(i.TypeArguments[0], typeSymbol)))
+                    {
+                        throw new InvalidOperationException($"{typeSymbol.ToDisplayString()} does not implement IEquatable<{typeSymbol.ToDisplayString()}>");
+                    }
+
+                    if (typeSymbol.NullableAnnotation == NullableAnnotation.Annotated)
+                    {
+                        yield return "null";
+                        continue;
+                    }
+
+                    var emptyMember = typeSymbol.GetMembers("Empty").FirstOrDefault();
+                    if (emptyMember != null && emptyMember.IsStatic)
+                    {
+                        yield return $"{typeSymbol.ToDisplayString()}.Empty";
+                        continue;
+                    }
+
+                    yield return "default";
+                }
+
+                bool InheritsFrom(INamedTypeSymbol? derivedType, INamedTypeSymbol baseType)
+                {
+                    while (derivedType != null)
+                    {
+                        if (SymbolEqualityComparer.Default.Equals(derivedType, baseType))
+                        {
+                            return true;
+                        }
+                        derivedType = derivedType.BaseType;
+                    }
+                    return false;
+                }
+            }
+
+            var tupleDefinition = string.Join(", ", types.Select((t, i) => $"{t.ToDisplayString()} {names[i]}"));
 
             var sourceBuilder = new StringBuilder();
             sourceBuilder.AppendLine("#nullable enable");
@@ -52,10 +121,9 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("    using System;");
             sourceBuilder.AppendLine("    using StrongTypeIdGenerator;");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"    [System.ComponentModel.TypeConverter(typeof({className}Converter))]");
-            sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifier<{className}, {TIdentifier}>");
+            sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifierNoCast<{className}, ({tupleDefinition})>");
             sourceBuilder.AppendLine("    {");
-            sourceBuilder.AppendLine($"        public {className}({TIdentifier} value)");
+            sourceBuilder.AppendLine($"        public {className}(({tupleDefinition}) value)");
             sourceBuilder.AppendLine("        {");
 
             if (hasCheckValueMethod)
@@ -69,18 +137,16 @@ namespace StrongTypeIdGenerator.Analyzer
 
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public static {className} Unspecified {{ get; }} = new {className}({TIdentifier}.Empty);");
+            sourceBuilder.AppendLine($"        public static {className} Unspecified {{ get; }} = new {className}(({string.Join(", ", GetDefaultValueDefinitions())}));");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public {TIdentifier} Value {{ get; }}");
+            sourceBuilder.AppendLine($"        public ({tupleDefinition}) Value {{ get; }}");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public static implicit operator {className}({TIdentifier} value)");
+            sourceBuilder.AppendLine($"        public void Deconstruct({string.Join(", ", types.Select((t, i) => $"out {t.ToDisplayString()} {names[i]}"))})");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            return value == Unspecified.Value ? Unspecified : new {className}(value);");
-            sourceBuilder.AppendLine("        }");
-            sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public static implicit operator {TIdentifier}({className} value)");
-            sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            return value?.Value ?? {TIdentifier}.Empty;");
+            for (var i = 0; i < types.Length; i++)
+            {
+                sourceBuilder.AppendLine($"            {names[i]} = Value.{names[i]};");
+            }
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public bool Equals({className}? other)");
@@ -125,7 +191,7 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public string ToString(string? format, IFormatProvider? formatProvider)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value.ToString(format, formatProvider);");
+            sourceBuilder.AppendLine("            return Value.ToString();");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator ==({className} left, {className} right)");
@@ -162,19 +228,6 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("        {");
             sourceBuilder.AppendLine("            return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;");
             sourceBuilder.AppendLine("        }");
-            sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        private sealed partial class {className}Converter : TypeToStringConverter<{className}>");
-            sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            protected override string? InternalConvertToString({className} value)");
-            sourceBuilder.AppendLine("            {");
-            sourceBuilder.AppendLine("                return value.Value.ToString();");
-            sourceBuilder.AppendLine("            }");
-            sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"            protected override {className}? InternalConvertFromString(string value)");
-            sourceBuilder.AppendLine("            {");
-            sourceBuilder.AppendLine($"                return new {className}(Guid.Parse(value));");
-            sourceBuilder.AppendLine("            }");
-            sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine("    }");
 
             if (namespaceName is not null)
@@ -186,3 +239,4 @@ namespace StrongTypeIdGenerator.Analyzer
         }
     }
 }
+

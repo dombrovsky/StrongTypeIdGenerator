@@ -1,18 +1,25 @@
 # StrongTypeIdGenerator
 
-StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid and string-based identifiers.
+StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid, string-based identifiers, and combined.
 
-Define this:
+## Installation
+Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator.
+```
+<PackageReference Include="StrongTypeIdGenerator" Version="1.0.0" />
+```
+
+## Getting Started
+Define your ID type:
 ```csharp
 [StringId]
 partial class FooId
 {
 }
 ```
-and get this generated:
+The generator will produce:
 ```csharp
 [System.ComponentModel.TypeConverter(typeof(FooIdConverter))]
-partial class FooId : IEquatable<FooId>, IComparable<FooId>, IFormattable
+partial class FooId : ITypedIdentifier<FooId, string>
 {
     public FooId(string value)
     {
@@ -28,9 +35,11 @@ partial class FooId : IEquatable<FooId>, IComparable<FooId>, IFormattable
 
     public string Value { get; }
 
-    public static implicit operator FooId(string value) { ... }
+    [return: NotNullIfNotNull(nameof(value))]
+    public static implicit operator FooId?(string? value) { ... }
 
-    public static implicit operator string(FooId value) { ... }
+    [return: NotNullIfNotNull(nameof(value))]
+    public static implicit operator string?(FooId? value) { ... }
 
     public bool Equals(FooId? other) { ... }
 
@@ -99,14 +108,8 @@ partial class FooId
 }
 ```
 
-## Installation
-Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator.
-```
-<PackageReference Include="StrongTypeIdGenerator" Version="1.0.0" />
-```
-
 ## Usage
-Just define your Id type like that
+Define ID types easily:
 ```csharp
 [StringId]
 public sealed partial class FooId
@@ -115,6 +118,14 @@ public sealed partial class FooId
 
 [GuidId]
 public sealed partial class BarId
+{
+}
+```
+
+Or use `[CombinedId]` to create a composite identifier:
+```csharp
+[CombinedId(typeof(BarId), "BarId", typeof(string), "StringId", typeof(Guid), "GuidId", typeof(int), "IntId")]
+public partial class FooBarCombinedId
 {
 }
 ```
