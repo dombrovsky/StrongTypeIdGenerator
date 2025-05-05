@@ -4,6 +4,26 @@ namespace StrongTypeIdGenerator
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
 
+    /// <summary>
+    /// An attribute used to mark a class as a strong-typed identifier that combines multiple components.
+    /// </summary>
+    /// <remarks>
+    /// This attribute is part of the StrongTypeIdGenerator library and is used in conjunction with source generators
+    /// to create immutable, type-safe identifiers that combine multiple components (e.g., <see cref="Guid"/>, <see cref="string"/>, <see cref="int"/>).
+    /// Each component is defined by its type and a corresponding name.
+    /// </remarks>
+    /// <example>
+    /// Example usage:
+    /// <code>
+    /// using StrongTypeIdGenerator;
+    /// 
+    /// [CombinedId(typeof(Guid), "Id1", typeof(string), "Id2")]
+    /// public partial class MyCombinedId
+    /// {
+    ///     // This class will be treated as a strong-typed identifier combining Guid and string values.
+    /// }
+    /// </code>
+    /// </example>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class CombinedIdAttribute : BaseIdAttribute
     {
@@ -98,6 +118,12 @@ namespace StrongTypeIdGenerator
             };
         }
 
+        /// <summary>
+        /// Gets the list of components that make up the combined identifier.
+        /// </summary>
+        /// <remarks>
+        /// Each component is represented by a <see cref="ComponentDescriptor"/>, which includes the type and name of the component.
+        /// </remarks>
         public IReadOnlyList<ComponentDescriptor> Components { get; }
     }
 }
