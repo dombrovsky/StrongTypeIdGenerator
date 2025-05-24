@@ -5,6 +5,10 @@ name: Publish
 
 on: [workflow_dispatch]
 
+permissions:
+  packages: write
+  contents: write
+
 jobs:
   build:
 
@@ -29,3 +33,28 @@ jobs:
       run: dotnet test --no-build --verbosity normal
     - name: Publish
       run: dotnet nuget push **/*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}} --skip-duplicate
+    - name: Prepare release artifacts
+      id: package
+      run: |
+        FILES=$(find . -name "*.nupkg" -o -name "*.snupkg" | grep -v '\.symbols\.nupkg')
+        echo "files<<EOF" >> $GITHUB_OUTPUT
+        echo "$FILES" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+
+        VERSION=$(basename $(echo "$FILES" | grep '\.nupkg$' | head -n 1) | sed -E 's/.*\.([0-9]+\.[0-9]+\.[0-9]+(-[A-Za-z0-9.]+)?)\.nupkg/\1/')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+        if [[ "$VERSION" == *-* ]]; then
+          echo "prerelease=true" >> $GITHUB_OUTPUT
+        else
+          echo "prerelease=false" >> $GITHUB_OUTPUT
+        fi
+    - name: Create GitHub Release
+      uses: elgohr/Github-Release-Action@v5
+      with:
+        title: v${{ steps.package.outputs.version }}
+        tag: v${{ steps.package.outputs.version }}
+        filename: ${{ steps.package.outputs.files }}
+        prerelease: ${{ steps.package.outputs.prerelease }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
