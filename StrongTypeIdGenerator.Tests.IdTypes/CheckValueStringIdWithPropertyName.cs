@@ -1,7 +1,7 @@
 namespace StrongTypeIdGenerator.Tests
 {
-    [StringId]
-    public partial class CheckValueStringId
+    [StringId(ValuePropertyName = "Text")]
+    public partial class CheckValueStringIdWithPropertyName
     {
         private static string CheckValue(string value)
         {

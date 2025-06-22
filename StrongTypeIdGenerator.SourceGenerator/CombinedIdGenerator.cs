@@ -37,8 +37,9 @@ namespace StrongTypeIdGenerator.Analyzer
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
                 var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData);
+                var valuePropertyName = GetAttributeArgumentValue(attributeData, "ValuePropertyName", fallbackValue: "Value");
                 var components = GetComponents(attributeData);
-                var source = GenerateCombinedIdClass(compilation, namespaceName, className, components.Types, components.Names, hasCheckValueMethod);
+                var source = GenerateCombinedIdClass(compilation, namespaceName, className, components.Types, components.Names, hasCheckValueMethod, valuePropertyName);
 
                 context.AddSource($"{className}_CombinedId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -52,8 +53,11 @@ namespace StrongTypeIdGenerator.Analyzer
             return (types, names);
         }
 
-        private static string GenerateCombinedIdClass(Compilation compilation, string? namespaceName, string className, INamedTypeSymbol[] types, string[] names, bool hasCheckValueMethod)
+        private static string GenerateCombinedIdClass(Compilation compilation, string? namespaceName, string className, INamedTypeSymbol[] types, string[] names, bool hasCheckValueMethod, string valuePropertyName)
         {
+            bool needsExplicitInterfaceImplementation = valuePropertyName != "Value";
+            var valueParameterName = valuePropertyName.ToLowerInvariant();
+
             IEnumerable<string> GetDefaultValueDefinitions()
             {
                 foreach (var typeSymbol in types)
@@ -123,29 +127,36 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifierNoCast<{className}, ({tupleDefinition})>");
             sourceBuilder.AppendLine("    {");
-            sourceBuilder.AppendLine($"        public {className}(({tupleDefinition}) value)");
+            sourceBuilder.AppendLine($"        public {className}(({tupleDefinition}) {valueParameterName})");
             sourceBuilder.AppendLine("        {");
 
             if (hasCheckValueMethod)
             {
-                sourceBuilder.AppendLine("            Value = CheckValue(value);");
+                sourceBuilder.AppendLine($"            {valuePropertyName} = CheckValue({valueParameterName});");
             }
             else
             {
-                sourceBuilder.AppendLine("            Value = value;");
+                sourceBuilder.AppendLine($"            {valuePropertyName} = {valueParameterName};");
             }
 
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static {className} Unspecified {{ get; }} = new {className}(({string.Join(", ", GetDefaultValueDefinitions())}));");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public ({tupleDefinition}) Value {{ get; }}");
+            sourceBuilder.AppendLine($"        public ({tupleDefinition}) {valuePropertyName} {{ get; }}");
             sourceBuilder.AppendLine();
+
+            if (needsExplicitInterfaceImplementation)
+            {
+                sourceBuilder.AppendLine($"        ({tupleDefinition}) ITypedIdentifier<({tupleDefinition})>.Value => {valuePropertyName};");
+                sourceBuilder.AppendLine();
+            }
+
             sourceBuilder.AppendLine($"        public void Deconstruct({string.Join(", ", types.Select((t, i) => $"out {t.ToDisplayString()} {names[i]}"))})");
             sourceBuilder.AppendLine("        {");
             for (var i = 0; i < types.Length; i++)
             {
-                sourceBuilder.AppendLine($"            {names[i]} = Value.{names[i]};");
+                sourceBuilder.AppendLine($"            {names[i]} = {valuePropertyName}.{names[i]};");
             }
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
@@ -166,12 +177,12 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("                return false;");
             sourceBuilder.AppendLine("            }");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine("            return Value.Equals(other.Value);");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.Equals(other.{valuePropertyName});");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public int CompareTo({className}? other)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return other is null ? 1 : Value.CompareTo(other.Value);");
+            sourceBuilder.AppendLine($"            return other is null ? 1 : {valuePropertyName}.CompareTo(other.{valuePropertyName});");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override bool Equals(object? obj)");
@@ -181,17 +192,17 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override int GetHashCode()");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value.GetHashCode();");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.GetHashCode();");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override string ToString()");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value.ToString();");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.ToString();");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public string ToString(string? format, IFormatProvider? formatProvider)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value.ToString();");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.ToString();");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator ==({className}? left, {className}? right)");

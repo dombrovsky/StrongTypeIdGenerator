@@ -3,61 +3,41 @@ namespace StrongTypeIdGenerator.Tests
     using System.ComponentModel;
 
     [TestFixture]
-    internal sealed class CustomCheckValueStringIdFixture
+    internal sealed class CustomCheckValueStringIdFixture : CustomCheckValueFixtureBase<CheckValueStringId, string>
     {
-        [Test]
-        public void Constructor_CheckValueIsCalled()
+        protected override CheckValueStringId CreateId(string value)
         {
-            // Arrange
-            CheckValueStringId id = null!;
-            var value = new string('a', 11);
-
-            // Act
-            void Act() => id = new CheckValueStringId(value);
-
-            // Assert
-            Assert.Throws<ArgumentException>(Act);
+            return new CheckValueStringId(value);
         }
 
-        [Test]
-        public void Constructor_ValidValue_CheckValueModifiesValue()
+        protected override string GetValidValue()
         {
-            // Arrange
-            CheckValueStringId id = null!;
-            var value = new string('a', 9);
-
-            // Act
-            id = new CheckValueStringId(value);
-
-            // Assert
-            Assert.That(id.Value, Is.EqualTo(new string('A', 9)));
+            return new string('a', 9);
         }
 
-        [Test]
-        public void ImplicitCast_CheckValueIsCalled()
+        protected override string GetInvalidValue()
         {
-            // Arrange
-            CheckValueStringId id = null!;
-            var value = new string('a', 11);
-
-            // Act
-            void Act() => id = value;
-
-            // Assert
-            Assert.Throws<ArgumentException>(Act);
+            return new string('a', 11);
         }
 
-        [Test]
-        public void TypeConverter_CheckValueIsCalled()
+        protected override string GetExpectedValidValue()
         {
-            // Arrange
-            var value = new string('a', 11);
+            return new string('A', 9);
+        }
 
-            // Act
-            void Act() => TypeDescriptor.GetConverter(typeof(CheckValueStringId)).ConvertFromString(value);
+        protected override string GetIdValue(CheckValueStringId id)
+        {
+            return id.Value;
+        }
 
-            // Assert
-            Assert.Throws<ArgumentException>(Act);
+        protected override CheckValueStringId ImplicitCast(string value)
+        {
+            return value;
+        }
+
+        protected override string ConvertToString(string value)
+        {
+            return value;
         }
     }
 }

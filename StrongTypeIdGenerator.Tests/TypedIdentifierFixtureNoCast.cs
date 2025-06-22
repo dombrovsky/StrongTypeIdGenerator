@@ -86,10 +86,29 @@ namespace StrongTypeIdGenerator.Tests
             Assert.That(sut1, Is.Not.EqualTo(sut2));
         }
 
+        [Test]
+        public void Value_EqualsToInputValue()
+        {
+            var (id1, id2, unspecified) = ProvideIdentifiers();
+
+            var sut1 = CreateSut(id1);
+            var sut2 = CreateSut(id2);
+            var sutUnspecified = CreateSut(unspecified);
+
+            Assert.That(GetIdentifier(sut1), Is.EqualTo(id1));
+            Assert.That(GetIdentifier(sut2), Is.EqualTo(id2));
+            Assert.That(GetIdentifier(sutUnspecified), Is.EqualTo(unspecified));
+        }
+
         protected abstract (TIdentifier Id1, TIdentifier Id2, TIdentifier Unspecified) ProvideIdentifiers();
 
         protected abstract TSut CreateSut(TIdentifier id);
 
         protected abstract TSutSubclass CreateSubclassSut(TIdentifier id);
+
+        protected virtual TIdentifier GetIdentifier(TSut sut)
+        {
+            return sut.Value;
+        }
     }
 }
