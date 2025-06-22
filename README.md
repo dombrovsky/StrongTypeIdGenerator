@@ -129,6 +129,11 @@ public partial class FooBarCombinedId
 {
 }
 ```
+## Custom Value Property Name
+
+You can customize the name of the property that holds the identifier's value by setting the `ValuePropertyName` property on the attribute:
+
+When using a custom property name, the generated class will still implement the `ITypedIdentifier<T>` interface correctly by providing an explicit implementation for the `Value` property that forwards to your custom property.
 
 ## Acknowledgements
 Inspired by a great library https://github.com/andrewlock/StronglyTypedId.

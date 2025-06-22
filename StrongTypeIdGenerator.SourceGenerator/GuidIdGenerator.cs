@@ -4,6 +4,7 @@ namespace StrongTypeIdGenerator.Analyzer
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
     using System.Collections.Immutable;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Text;
 
@@ -28,17 +29,20 @@ namespace StrongTypeIdGenerator.Analyzer
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
+                var valuePropertyName = GetAttributeArgumentValue(attributeData, "ValuePropertyName", fallbackValue: "Value");
                 var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData);
 
-                var source = GenerateStrongTypeIdClass(namespaceName, className, hasCheckValueMethod);
+                var source = GenerateStrongTypeIdClass(namespaceName, className, hasCheckValueMethod, valuePropertyName);
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
         }
 
-        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool hasCheckValueMethod)
+        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool hasCheckValueMethod, string valuePropertyName)
         {
             const string TIdentifier = "Guid";
+            var needsExplicitInterfaceImplementation = valuePropertyName != "Value";
+            var valueParameterName = valuePropertyName.ToLowerInvariant();
 
             var sourceBuilder = new StringBuilder();
             sourceBuilder.AppendLine("#nullable enable");
@@ -55,32 +59,39 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine($"    [System.ComponentModel.TypeConverter(typeof({className}Converter))]");
             sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifier<{className}, {TIdentifier}>");
             sourceBuilder.AppendLine("    {");
-            sourceBuilder.AppendLine($"        public {className}({TIdentifier} value)");
+            sourceBuilder.AppendLine($"        public {className}({TIdentifier} {valueParameterName})");
             sourceBuilder.AppendLine("        {");
 
             if (hasCheckValueMethod)
             {
-                sourceBuilder.AppendLine("            Value = CheckValue(value);");
+                sourceBuilder.AppendLine($"            {valuePropertyName} = CheckValue({valueParameterName});");
             }
             else
             {
-                sourceBuilder.AppendLine("            Value = value;");
+                sourceBuilder.AppendLine($"            {valuePropertyName} = {valueParameterName};");
             }
 
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static {className} Unspecified {{ get; }} = new {className}({TIdentifier}.Empty);");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine($"        public {TIdentifier} Value {{ get; }}");
+            sourceBuilder.AppendLine($"        public {TIdentifier} {valuePropertyName} {{ get; }}");
             sourceBuilder.AppendLine();
+
+            if (needsExplicitInterfaceImplementation)
+            {
+                sourceBuilder.AppendLine($"        {TIdentifier} ITypedIdentifier<{TIdentifier}>.Value => {valuePropertyName};");
+                sourceBuilder.AppendLine();
+            }
+
             sourceBuilder.AppendLine($"        public static implicit operator {className}({TIdentifier} value)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            return value == Unspecified.Value ? Unspecified : new {className}(value);");
+            sourceBuilder.AppendLine($"            return value == Unspecified.{valuePropertyName} ? Unspecified : new {className}(value);");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static implicit operator {TIdentifier}({className} value)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine($"            return value?.Value ?? {TIdentifier}.Empty;");
+            sourceBuilder.AppendLine($"            return value?.{valuePropertyName} ?? {TIdentifier}.Empty;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public bool Equals({className}? other)");
@@ -100,12 +111,12 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("                return false;");
             sourceBuilder.AppendLine("            }");
             sourceBuilder.AppendLine();
-            sourceBuilder.AppendLine("            return Value.Equals(other.Value);");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.Equals(other.{valuePropertyName});");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public int CompareTo({className}? other)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return other is null ? 1 : Value.CompareTo(other.Value);");
+            sourceBuilder.AppendLine($"            return other is null ? 1 : {valuePropertyName}.CompareTo(other.{valuePropertyName});");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override bool Equals(object? obj)");
@@ -115,17 +126,17 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override int GetHashCode()");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value.GetHashCode();");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.GetHashCode();");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public override string ToString()");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value.ToString();");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.ToString();");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine("        public string ToString(string? format, IFormatProvider? formatProvider)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return Value.ToString(format, formatProvider);");
+            sourceBuilder.AppendLine($"            return {valuePropertyName}.ToString(format, formatProvider);");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator ==({className}? left, {className}? right)");
@@ -145,29 +156,29 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator <({className}? left, {className}? right)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return ReferenceEquals(left, null) ? !ReferenceEquals(right, null) : left.CompareTo(right) < 0;");
+            sourceBuilder.AppendLine($"            return ReferenceEquals(left, null) ? !ReferenceEquals(right, null) : left.CompareTo(right) < 0;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator <=({className}? left, {className}? right)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return ReferenceEquals(left, null) || left.CompareTo(right) <= 0;");
+            sourceBuilder.AppendLine($"            return ReferenceEquals(left, null) || left.CompareTo(right) <= 0;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator >({className}? left, {className}? right)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return !ReferenceEquals(left, null) && left.CompareTo(right) > 0;");
+            sourceBuilder.AppendLine($"            return !ReferenceEquals(left, null) && left.CompareTo(right) > 0;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        public static bool operator >=({className}? left, {className}? right)");
             sourceBuilder.AppendLine("        {");
-            sourceBuilder.AppendLine("            return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;");
+            sourceBuilder.AppendLine($"            return ReferenceEquals(left, null) ? ReferenceEquals(right, null) : left.CompareTo(right) >= 0;");
             sourceBuilder.AppendLine("        }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"        private sealed partial class {className}Converter : TypeToStringConverter<{className}>");
             sourceBuilder.AppendLine("        {");
             sourceBuilder.AppendLine($"            protected override string? InternalConvertToString({className} value)");
             sourceBuilder.AppendLine("            {");
-            sourceBuilder.AppendLine("                return value.Value.ToString();");
+            sourceBuilder.AppendLine($"                return value.{valuePropertyName}.ToString();");
             sourceBuilder.AppendLine("            }");
             sourceBuilder.AppendLine();
             sourceBuilder.AppendLine($"            protected override {className}? InternalConvertFromString(string value)");

@@ -1,7 +1,7 @@
 namespace StrongTypeIdGenerator.Tests
 {
-    [GuidId]
-    public partial class CheckValueGuidId
+    [GuidId(ValuePropertyName = "Guid")]
+    public partial class CheckValueGuidIdWithPropertyName
     {
         public static readonly Guid InvalidValue = Guid.Parse("90BC12B3-F9FA-44FF-AEEF-D30688D9B1FC");
 

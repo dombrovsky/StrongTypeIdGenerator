@@ -1,63 +1,41 @@
 namespace StrongTypeIdGenerator.Tests
 {
-    using System.ComponentModel;
-
     [TestFixture]
-    internal sealed class CustomCheckValueGuidIdFixture
+    internal sealed class CustomCheckValueGuidIdFixture : CustomCheckValueFixtureBase<CheckValueGuidId, Guid>
     {
-        [Test]
-        public void Constructor_ValidValue_CheckValueModifiesValue()
+        protected override CheckValueGuidId CreateId(Guid value)
         {
-            // Arrange
-            CheckValueGuidId id = null!;
-            var value = Guid.Parse("3A891E7E-506A-4A05-BF81-2F8D6544CBAB");
-
-            // Act
-            id = new CheckValueGuidId(value);
-
-            // Assert
-            Assert.That(id.Value, Is.EqualTo(CheckValueGuidId.ValidValue));
+            return new CheckValueGuidId(value);
         }
 
-        [Test]
-        public void Constructor_CheckValueIsCalled()
+        protected override Guid GetValidValue()
         {
-            // Arrange
-            CheckValueGuidId id = null!;
-            var value = CheckValueGuidId.InvalidValue;
-
-            // Act
-            void Act() => id = new CheckValueGuidId(value);
-
-            // Assert
-            Assert.Throws<ArgumentException>(Act);
+            return Guid.Parse("3A891E7E-506A-4A05-BF81-2F8D6544CBAB");
         }
 
-        [Test]
-        public void ImplicitCast_CheckValueIsCalled()
+        protected override Guid GetInvalidValue()
         {
-            // Arrange
-            CheckValueGuidId id = null!;
-            var value = CheckValueGuidId.InvalidValue;
-
-            // Act
-            void Act() => id = value;
-
-            // Assert
-            Assert.Throws<ArgumentException>(Act);
+            return CheckValueGuidId.InvalidValue;
         }
 
-        [Test]
-        public void TypeConverter_CheckValueIsCalled()
+        protected override Guid GetExpectedValidValue()
         {
-            // Arrange
-            var value = CheckValueGuidId.InvalidValue;
+            return CheckValueGuidId.ValidValue;
+        }
 
-            // Act
-            void Act() => TypeDescriptor.GetConverter(typeof(CheckValueGuidId)).ConvertFromString(value.ToString());
+        protected override Guid GetIdValue(CheckValueGuidId id)
+        {
+            return id.Value;
+        }
 
-            // Assert
-            Assert.Throws<ArgumentException>(Act);
+        protected override CheckValueGuidId ImplicitCast(Guid value)
+        {
+            return value;
+        }
+
+        protected override string ConvertToString(Guid value)
+        {
+            return value.ToString();
         }
     }
 }

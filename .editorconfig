@@ -261,6 +261,7 @@ dotnet_diagnostic.SA1106.severity=suggestion
 dotnet_diagnostic.ca1812.severity = none
 dotnet_diagnostic.ca1848.severity = none
 dotnet_diagnostic.CA1040.severity=suggestion
+dotnet_diagnostic.CA1308.severity=suggestion
 
 [*{Fixture,Tests,Test}.cs]
 dotnet_code_quality.ca1707.api_surface = private, internal
