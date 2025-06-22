@@ -7,8 +7,8 @@ namespace StrongTypeIdGenerator.Tests
 
     public sealed partial class DerivedTestCombinedId : TestCombinedId
     {
-        public DerivedTestCombinedId((TestGuidId TestGuid, string StringId, System.Guid GuidId, int IntId) value)
-            : base(value)
+        public DerivedTestCombinedId(TestGuidId testGuid, string stringId, System.Guid guidId, int intId)
+            : base(testGuid, stringId, guidId, intId)
         {
         }
     }
@@ -20,11 +20,11 @@ namespace StrongTypeIdGenerator.Tests
 
         public static readonly (TestGuidId TestGuid, string StringId, Guid GuidId) ValidValue = (new TestGuidId(Guid.Parse("ECA00066-B8BF-4BAF-8370-3240E7F64356")), "2", Guid.Parse("ECA00066-B8BF-4BAF-8370-3240E7F64356"));
 
-        private static (TestGuidId TestGuid, string StringId, Guid GuidId) CheckValue((TestGuidId TestGuid, string StringId, Guid GuidId) value)
+        private static (TestGuidId TestGuid, string StringId, Guid GuidId) CheckValue(TestGuidId testGuid, string stringId, Guid guidId)
         {
-            if (value == InvalidValue)
+            if (testGuid == InvalidValue.TestGuid && stringId == InvalidValue.StringId && guidId == InvalidValue.GuidId)
             {
-                throw new ArgumentException("Invalid value", nameof(value));
+                throw new ArgumentException("Invalid value", nameof(testGuid));
             }
 
             return ValidValue;

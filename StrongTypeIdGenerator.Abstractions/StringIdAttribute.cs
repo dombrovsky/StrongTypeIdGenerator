@@ -23,7 +23,7 @@ namespace StrongTypeIdGenerator
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class StringIdAttribute : BaseIdAttribute
+    public sealed class StringIdAttribute : BaseScalarIdAttribute
     {
         /// <summary>
         /// Gets or sets a value indicating whether the generated constructor should be private.

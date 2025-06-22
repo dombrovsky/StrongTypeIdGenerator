@@ -23,7 +23,7 @@ namespace StrongTypeIdGenerator
     /// </code>
     /// </example>
     [AttributeUsage(AttributeTargets.Class)]
-    public sealed class GuidIdAttribute : BaseIdAttribute
+    public sealed class GuidIdAttribute : BaseScalarIdAttribute
     {
     }
 }

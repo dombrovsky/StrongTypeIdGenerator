@@ -3,7 +3,9 @@ namespace StrongTypeIdGenerator.Analyzer
     using Microsoft.CodeAnalysis;
     using Microsoft.CodeAnalysis.CSharp.Syntax;
     using Microsoft.CodeAnalysis.Text;
+    using StrongTypeIdGenerator.SourceGenerator;
     using System.Collections.Immutable;
+    using System.Globalization;
     using System.Linq;
     using System.Text;
 
@@ -30,7 +32,7 @@ namespace StrongTypeIdGenerator.Analyzer
                 var namespaceName = GetNamespace(classDeclaration);
                 var generateConstructorPrivate = GetAttributeArgumentValue(attributeData, "GenerateConstructorPrivate", fallbackValue: false);
                 var valuePropertyName = GetAttributeArgumentValue(attributeData, "ValuePropertyName", fallbackValue: "Value");
-                var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData);
+                var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData, ensureIdParameter: true);
 
                 var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate, hasCheckValueMethod, valuePropertyName);
 
@@ -42,7 +44,7 @@ namespace StrongTypeIdGenerator.Analyzer
         {
             const string TIdentifier = "string";
             bool needsExplicitInterfaceImplementation = valuePropertyName != "Value";
-            var valueParameterName = valuePropertyName.ToLowerInvariant();
+            var valueParameterName = valuePropertyName.Decapitalize(CultureInfo.InvariantCulture);
 
             var sourceBuilder = new StringBuilder();
             sourceBuilder.AppendLine("#nullable enable");

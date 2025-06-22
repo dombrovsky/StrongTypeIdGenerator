@@ -5,7 +5,7 @@ namespace StrongTypeIdGenerator.Tests
     {
         protected override CheckValueCombinedId CreateId((TestGuidId TestGuid, string StringId, Guid GuidId) value)
         {
-            return new CheckValueCombinedId(value);
+            return new CheckValueCombinedId(value.TestGuid, value.StringId, value.GuidId);
         }
 
         protected override (TestGuidId TestGuid, string StringId, Guid GuidId) GetValidValue()
@@ -25,7 +25,7 @@ namespace StrongTypeIdGenerator.Tests
 
         protected override (TestGuidId TestGuid, string StringId, Guid GuidId) GetIdValue(CheckValueCombinedId id)
         {
-            return id.Value;
+            return (id.TestGuid, id.StringId, id.GuidId);
         }
 
         [Ignore("Not applicable for combined id")]
