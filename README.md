@@ -127,6 +127,28 @@ public partial class FooBarCombinedId
 }
 ```
 Combined indentifier supports other StrongTypeId generated types and primitives e.g. `string`, `int`, `Guid`.
+### Custom Validation
+You can add custom validation logic to your ID types by defining a `CheckValue` method. The method will be called from the constructor and can validate (throw exceptions) or modify the input value.
+#### String and Guid IDs
+For `StringId` and `GuidId`, define a method with this signature:
+```csharp
+private static string CheckValue(string value)
+private static Guid CheckValue(Guid value)
+{
+    // Validation logic here
+    return value;
+}
+```
+#### Combined IDs
+For `CombinedId`, the `CheckValue` method should accept individual parameters matching the constructor and return a tuple with the validated values:
+```csharp
+private static (BarId, string, Guid, int) CheckValue(BarId barId, string stringId, Guid guidId, int intId)
+{
+    // Validation logic here
+    return (barId, stringId, guidId, intId);
+}
+```
+The `CheckValue` method is called from the constructor and its result is used to set the properties of the ID class.
 ### Custom Value Property Name
 You can customize the name of the property that holds the identifier's value by setting the `ValuePropertyName` property on the attribute:
 ```csharp

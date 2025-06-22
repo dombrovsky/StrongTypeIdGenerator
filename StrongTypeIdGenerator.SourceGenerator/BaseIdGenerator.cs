@@ -98,7 +98,7 @@ namespace StrongTypeIdGenerator.Analyzer
             return null;
         }
 
-        protected bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration, AttributeData attributeData)
+        protected bool HasCheckValueMethod(Compilation compilation, ClassDeclarationSyntax classDeclaration, AttributeData attributeData, bool ensureIdParameter)
         {
             if (compilation is null)
             {
@@ -124,8 +124,8 @@ namespace StrongTypeIdGenerator.Analyzer
                 if (member is IMethodSymbol methodSymbol &&
                     methodSymbol.IsStatic &&
                     methodSymbol.DeclaredAccessibility == Accessibility.Private &&
-                    methodSymbol.Parameters.Length == 1 &&
-                    SymbolEqualityComparer.Default.Equals(methodSymbol.Parameters[0].Type, idTypeSymbol))
+                    SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType, idTypeSymbol) &&
+                    (!ensureIdParameter || methodSymbol.Parameters.Length == 1 && SymbolEqualityComparer.Default.Equals(methodSymbol.Parameters[0].Type, idTypeSymbol)))
                 {
                     return true;
                 }

@@ -11,6 +11,17 @@ namespace StrongTypeIdGenerator
     /// This attribute is part of the StrongTypeIdGenerator library and is used in conjunction with source generators
     /// to create immutable, type-safe identifiers that combine multiple components (e.g., <see cref="Guid"/>, <see cref="string"/>, <see cref="int"/>).
     /// Each component is defined by its type and a corresponding name.
+    /// 
+    /// You can customize validation by defining a method with signature matching the constructor parameters:
+    /// <code>
+    /// private static (Type1 Name1, Type2 Name2, ...) CheckValue(Type1 name1, Type2 name2, ...)
+    /// {
+    ///     // Validate (throw exception) and optionally transform the components
+    ///     return (name1, name2, ...);
+    /// }
+    /// </code>
+    /// 
+    /// The generated class will have individual properties for each component defined in the attribute.
     /// </remarks>
     /// <example>
     /// Example usage:
@@ -21,6 +32,22 @@ namespace StrongTypeIdGenerator
     /// public partial class MyCombinedId
     /// {
     ///     // This class will be treated as a strong-typed identifier combining Guid and string values.
+    ///     
+    ///     private static (Guid Id1, string Id2) CheckValue(Guid id1, string id2)
+    ///     {
+    ///         if (id1 == Guid.Empty)
+    ///         {
+    ///             throw new ArgumentException("Id1 cannot be empty", nameof(id1));
+    ///         }
+    ///         
+    ///         if (string.IsNullOrEmpty(id2))
+    ///         {
+    ///             throw new ArgumentException("Id2 cannot be null or empty", nameof(id2));
+    ///         }
+    ///         
+    ///         // You can also transform values
+    ///         return (id1, id2.ToUpperInvariant());
+    ///     }
     /// }
     /// </code>
     /// </example>

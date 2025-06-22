@@ -20,12 +20,12 @@ namespace StrongTypeIdGenerator.Tests
 
         protected override DerivedTestCombinedId CreateSubclassSut((TestGuidId TestGuid, string StringId, Guid GuidId, int IntId) id)
         {
-            return new DerivedTestCombinedId(id);
+            return new DerivedTestCombinedId(id.TestGuid, id.StringId, id.GuidId, id.IntId);
         }
 
         protected override TestCombinedId CreateSut((TestGuidId TestGuid, string StringId, Guid GuidId, int IntId) id)
         {
-            return new TestCombinedId(id);
+            return new TestCombinedId(id.TestGuid, id.StringId, id.GuidId, id.IntId);
         }
 
         protected override ((TestGuidId TestGuid, string StringId, Guid GuidId, int IntId) Id1, (TestGuidId TestGuid, string StringId, Guid GuidId, int IntId) Id2, (TestGuidId TestGuid, string StringId, Guid GuidId, int IntId) Unspecified) ProvideIdentifiers()
