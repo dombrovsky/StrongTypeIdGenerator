@@ -7,7 +7,6 @@ Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator.
 ```
 <PackageReference Include="StrongTypeIdGenerator" />
 ```
-
 ## Getting Started
 Define your ID type:
 ```csharp
@@ -79,18 +78,11 @@ partial class FooId : ITypedIdentifier<FooId, string>
     }
 }
 ```
-
 ## Design decisions
 There are a few opinionated principles regarding what strong type identifiers should and should not do, which may be different from similar libraries and are reasons this project existence.
-#### Idenifier type should be a reference type, not a value type.
+### Idenifier type should be a reference type, not a value type.
 Being able to protect invariants and not allow instance of id with invalid value to exist, is chosen over avoiding additional object allocation.
-#### No dependency on serialization libraries.
-StrongTypeIdGenerator only defines `System.ComponentModel.TypeConverter` that can convert to and from `string`. No `System.Text.Json` or `Newtonsoft.Json` or EF Core converters defined.
-
-This way Id types can be defined in `netstandard2.0` libraries with no additional dependencies.
-
-The proposed way to use generated Id classes in serialization e.g. with `System.Text.Json` is to provide [custom JsonConverterFactory](https://github.com/dombrovsky/StrongTypeIdGenerator/blob/main/StrongTypeIdGenerator.Json/TypeConverterJsonConverterFactory.cs) to serializer, that would utilize generated `TypeConverter`.
-#### Ability to define custom id precondition checks.
+### Ability to define custom id precondition checks.
 If Id class defines method `static string CheckValue(string value)`, that method would be called from generated constructor.
 ```csharp
 [StringId]
@@ -107,6 +99,12 @@ partial class FooId
     }
 }
 ```
+### No dependency on serialization libraries.
+StrongTypeIdGenerator only defines `System.ComponentModel.TypeConverter` that can convert to and from `string`. No `System.Text.Json` or `Newtonsoft.Json` or EF Core converters defined.
+
+This way Id types can be defined in `netstandard2.0` libraries with no additional dependencies.
+
+The proposed way to use generated Id classes in serialization e.g. with `System.Text.Json` is to provide [custom JsonConverterFactory](https://github.com/dombrovsky/StrongTypeIdGenerator/blob/main/StrongTypeIdGenerator.Json/TypeConverterJsonConverterFactory.cs) to serializer, that would utilize generated `TypeConverter`.
 
 ## Usage
 Define ID types easily:
@@ -121,7 +119,6 @@ public sealed partial class BarId
 {
 }
 ```
-
 Or use `[CombinedId]` to create a composite identifier:
 ```csharp
 [CombinedId(typeof(BarId), "BarId", typeof(string), "StringId", typeof(Guid), "GuidId", typeof(int), "IntId")]
@@ -129,11 +126,24 @@ public partial class FooBarCombinedId
 {
 }
 ```
-## Custom Value Property Name
-
+Combined indentifier supports other StrongTypeId generated types and primitives e.g. `string`, `int`, `Guid`.
+### Custom Value Property Name
 You can customize the name of the property that holds the identifier's value by setting the `ValuePropertyName` property on the attribute:
-
-When using a custom property name, the generated class will still implement the `ITypedIdentifier<T>` interface correctly by providing an explicit implementation for the `Value` property that forwards to your custom property.
-
+```csharp
+[GuidId(ValuePropertyName = "Uuid")]
+public sealed partial class BarId
+{
+}
+```
+And generated class fill get 'Uuid' property instead of 'Value':
+```csharp
+public sealed partial class BarId
+{
+  ...
+  public Guid Uuid { get; }
+  ...
+}
+```
+When using a custom property name, the generated class will still implement the `ITypedIdentifier<T>` interface by providing an explicit implementation for the `Value` property that forwards to your custom property.
 ## Acknowledgements
 Inspired by a great library https://github.com/andrewlock/StronglyTypedId.
