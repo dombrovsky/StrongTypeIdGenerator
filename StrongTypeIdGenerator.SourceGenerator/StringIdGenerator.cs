@@ -80,6 +80,7 @@ namespace StrongTypeIdGenerator.Analyzer
             }
             else
             {
+                sourceBuilder.AppendLine($"            // You can add validation by defining: private static {TIdentifier} CheckValue({TIdentifier} {valueParameterName});");
                 sourceBuilder.AppendLine($"            {valuePropertyName} = {valueParameterName};");
             }
 

@@ -91,6 +91,9 @@ namespace StrongTypeIdGenerator.Analyzer
             }
             else
             {
+                // Add comment about CheckValue method signature if not defined
+                sourceBuilder.AppendLine($"            // You can add validation by defining: private static ({tupleDefinition}) CheckValue({constructorParameters});");
+                
                 // Set individual properties directly
                 for (var i = 0; i < types.Length; i++)
                 {
