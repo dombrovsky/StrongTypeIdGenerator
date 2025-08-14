@@ -1,12 +1,12 @@
 # StrongTypeIdGenerator
 
-StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid, string-based identifiers, and combined.
+Source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid, string-based, and combined identifiers.
 
-## Installation
-Add nuget package https://www.nuget.org/packages/StrongTypeIdGenerator.
-```
-<PackageReference Include="StrongTypeIdGenerator" />
-```
+[![NuGet](https://img.shields.io/nuget/v/TaskFlow.svg)](https://www.nuget.org/packages/StrongTypeIdGenerator/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+---
+
 ## Getting Started
 Define your ID type:
 ```csharp
