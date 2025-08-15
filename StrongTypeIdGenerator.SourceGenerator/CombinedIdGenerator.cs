@@ -37,9 +37,10 @@ namespace StrongTypeIdGenerator.Analyzer
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
+                var generateConstructorPrivate = GetAttributeArgumentValue(attributeData, "GenerateConstructorPrivate", fallbackValue: false);
                 var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData, ensureIdParameter: false);
                 var components = GetComponents(attributeData);
-                var source = GenerateCombinedIdClass(compilation, namespaceName, className, components.Types, components.Names, hasCheckValueMethod);
+                var source = GenerateCombinedIdClass(compilation, namespaceName, className, components.Types, components.Names, generateConstructorPrivate, hasCheckValueMethod);
 
                 context.AddSource($"{className}_CombinedId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
@@ -53,7 +54,7 @@ namespace StrongTypeIdGenerator.Analyzer
             return (types, names);
         }
 
-        private static string GenerateCombinedIdClass(Compilation compilation, string? namespaceName, string className, INamedTypeSymbol[] types, string[] names, bool hasCheckValueMethod)
+        private static string GenerateCombinedIdClass(Compilation compilation, string? namespaceName, string className, INamedTypeSymbol[] types, string[] names, bool generateConstructorPrivate, bool hasCheckValueMethod)
         {
             // Always implement Value explicitly
             var tupleDefinition = string.Join(", ", types.Select((t, i) => $"{t.ToDisplayString()} {names[i]}"));
@@ -75,7 +76,7 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine("    {");
 
             // Constructor with individual parameters
-            sourceBuilder.AppendLine($"        public {className}({constructorParameters})");
+            sourceBuilder.AppendLine($"        {(generateConstructorPrivate ? "private" : "public")} {className}({constructorParameters})");
             sourceBuilder.AppendLine("        {");
 
             if (hasCheckValueMethod)
@@ -268,8 +269,10 @@ namespace StrongTypeIdGenerator.Analyzer
                         {
                             return true;
                         }
+
                         derivedType = derivedType.BaseType;
                     }
+
                     return false;
                 }
             }

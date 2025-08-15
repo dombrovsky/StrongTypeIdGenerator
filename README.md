@@ -167,5 +167,66 @@ public sealed partial class BarId
 }
 ```
 When using a custom property name, the generated class will still implement the `ITypedIdentifier<T>` interface by providing an explicit implementation for the `Value` property that forwards to your custom property.
+
+### Private Constructor Generation
+You can generate private constructors for your ID types to enforce controlled instantiation through factory methods. This is useful for implementing business rules or ensuring specific creation patterns.
+
+Set the `GenerateConstructorPrivate` property to `true` on any of the ID attributes:
+
+#### String and Guid IDs
+```csharp
+[StringId(GenerateConstructorPrivate = true)]
+public partial class SecureToken
+{
+    public static SecureToken CreateNew()
+    {
+        return new SecureToken(GenerateSecureRandomString());
+    }
+
+    public static SecureToken FromExisting(string value)
+    {
+        // Validate the token format
+        if (!IsValidTokenFormat(value))
+            throw new ArgumentException("Invalid token format");
+            
+        return new SecureToken(value);
+    }
+
+    private static string GenerateSecureRandomString() => /* implementation */;
+    private static bool IsValidTokenFormat(string value) => /* implementation */;
+}
+
+[GuidId(GenerateConstructorPrivate = true)]
+public partial class UserId
+{
+    public static UserId CreateNew() => new UserId(Guid.NewGuid());
+    
+    public static UserId FromString(string value) => new UserId(Guid.Parse(value));
+}
+```
+
+#### Combined IDs
+```csharp
+[CombinedId(typeof(Guid), "TenantId", typeof(string), "UserId", GenerateConstructorPrivate = true)]
+public partial class CompositeKey
+{
+    public static CompositeKey CreateForTenant(Guid tenantId, string userId)
+    {
+        if (tenantId == Guid.Empty)
+            throw new ArgumentException("Tenant ID cannot be empty");
+        if (string.IsNullOrWhiteSpace(userId))
+            throw new ArgumentException("User ID cannot be empty");
+            
+        return new CompositeKey(tenantId, userId);
+    }
+}
+```
+
+**Note:** When using private constructors:
+- Implicit conversion operators still work and call the private constructor
+- The `Unspecified` static property is still accessible
+- `TypeConverter` functionality continues to work for serialization scenarios
+- Custom `CheckValue` methods are still called during construction
+
 ## Acknowledgements
 Inspired by a great library https://github.com/andrewlock/StronglyTypedId.

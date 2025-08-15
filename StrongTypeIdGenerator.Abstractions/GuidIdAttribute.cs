@@ -20,6 +20,7 @@ namespace StrongTypeIdGenerator
     /// </code>
     /// 
     /// You can also customize the property name using <see cref="GuidIdAttribute.ValuePropertyName"/> property.
+    /// You can also generate a private constructor using <see cref="BaseIdAttribute.GenerateConstructorPrivate"/> property.
     /// </remarks>
     /// <example>
     /// Example usage:
@@ -46,6 +47,16 @@ namespace StrongTypeIdGenerator
     /// public partial class MyGuidId
     /// {
     ///     // The generated class will have a property named 'Uuid' instead of 'Value'
+    /// }
+    /// </code>
+    /// 
+    /// Using private constructor:
+    /// <code>
+    /// [GuidId(GenerateConstructorPrivate = true)]
+    /// public partial class SecureId
+    /// {
+    ///     public static SecureId Create() => new SecureId(Guid.NewGuid());
+    ///     public static SecureId FromString(string value) => new SecureId(Guid.Parse(value));
     /// }
     /// </code>
     /// </example>

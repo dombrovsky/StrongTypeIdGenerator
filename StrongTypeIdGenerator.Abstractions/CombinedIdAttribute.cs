@@ -21,6 +21,8 @@ namespace StrongTypeIdGenerator
     /// }
     /// </code>
     /// 
+    /// You can also generate a private constructor using <see cref="BaseIdAttribute.GenerateConstructorPrivate"/> property.
+    /// 
     /// The generated class will have individual properties for each component defined in the attribute.
     /// </remarks>
     /// <example>
@@ -47,6 +49,19 @@ namespace StrongTypeIdGenerator
     ///         
     ///         // You can also transform values
     ///         return (id1, id2.ToUpperInvariant());
+    ///     }
+    /// }
+    /// </code>
+    /// 
+    /// Using private constructor:
+    /// <code>
+    /// [CombinedId(typeof(Guid), "TenantId", typeof(string), "UserId", GenerateConstructorPrivate = true)]
+    /// public partial class CompositeKey
+    /// {
+    ///     public static CompositeKey CreateForTenant(Guid tenantId, string userId)
+    ///     {
+    ///         // Business logic validation
+    ///         return new CompositeKey(tenantId, userId);
     ///     }
     /// }
     /// </code>

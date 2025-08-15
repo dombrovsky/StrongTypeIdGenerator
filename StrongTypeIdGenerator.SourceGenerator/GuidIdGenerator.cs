@@ -31,16 +31,17 @@ namespace StrongTypeIdGenerator.Analyzer
             {
                 var className = classDeclaration.Identifier.Text;
                 var namespaceName = GetNamespace(classDeclaration);
+                var generateConstructorPrivate = GetAttributeArgumentValue(attributeData, "GenerateConstructorPrivate", fallbackValue: false);
                 var valuePropertyName = GetAttributeArgumentValue(attributeData, "ValuePropertyName", fallbackValue: "Value");
                 var hasCheckValueMethod = HasCheckValueMethod(compilation, classDeclaration, attributeData, ensureIdParameter: true);
 
-                var source = GenerateStrongTypeIdClass(namespaceName, className, hasCheckValueMethod, valuePropertyName);
+                var source = GenerateStrongTypeIdClass(namespaceName, className, generateConstructorPrivate, hasCheckValueMethod, valuePropertyName);
 
                 context.AddSource($"{className}_StrongTypeId.g.cs", SourceText.From(source, Encoding.UTF8));
             }
         }
 
-        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool hasCheckValueMethod, string valuePropertyName)
+        static string GenerateStrongTypeIdClass(string? namespaceName, string className, bool generateConstructorPrivate, bool hasCheckValueMethod, string valuePropertyName)
         {
             const string TIdentifier = "Guid";
             var needsExplicitInterfaceImplementation = valuePropertyName != "Value";
@@ -61,7 +62,7 @@ namespace StrongTypeIdGenerator.Analyzer
             sourceBuilder.AppendLine($"    [System.ComponentModel.TypeConverter(typeof({className}Converter))]");
             sourceBuilder.AppendLine($"    partial class {className} : ITypedIdentifier<{className}, {TIdentifier}>");
             sourceBuilder.AppendLine("    {");
-            sourceBuilder.AppendLine($"        public {className}({TIdentifier} {valueParameterName})");
+            sourceBuilder.AppendLine($"        {(generateConstructorPrivate ? "private" : "public")} {className}({TIdentifier} {valueParameterName})");
             sourceBuilder.AppendLine("        {");
 
             if (hasCheckValueMethod)
