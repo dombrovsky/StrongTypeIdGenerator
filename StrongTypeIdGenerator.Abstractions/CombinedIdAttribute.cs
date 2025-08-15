@@ -54,6 +54,13 @@ namespace StrongTypeIdGenerator
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class CombinedIdAttribute : BaseIdAttribute
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CombinedIdAttribute"/> class with two components.
+        /// </summary>
+        /// <param name="type1">The type of the first component.</param>
+        /// <param name="name1">The name of the first component.</param>
+        /// <param name="type2">The type of the second component.</param>
+        /// <param name="name2">The name of the second component.</param>
         [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are initialized through the constructor.")]
         public CombinedIdAttribute(Type type1, string name1, Type type2, string name2)
         {
@@ -64,6 +71,15 @@ namespace StrongTypeIdGenerator
             };
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CombinedIdAttribute"/> class with three components.
+        /// </summary>
+        /// <param name="type1">The type of the first component.</param>
+        /// <param name="name1">The name of the first component.</param>
+        /// <param name="type2">The type of the second component.</param>
+        /// <param name="name2">The name of the second component.</param>
+        /// <param name="type3">The type of the third component.</param>
+        /// <param name="name3">The name of the third component.</param>
         [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are initialized through the constructor.")]
         public CombinedIdAttribute(Type type1, string name1, Type type2, string name2, Type type3, string name3)
         {
@@ -75,6 +91,17 @@ namespace StrongTypeIdGenerator
             };
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CombinedIdAttribute"/> class with four components.
+        /// </summary>
+        /// <param name="type1">The type of the first component.</param>
+        /// <param name="name1">The name of the first component.</param>
+        /// <param name="type2">The type of the second component.</param>
+        /// <param name="name2">The name of the second component.</param>
+        /// <param name="type3">The type of the third component.</param>
+        /// <param name="name3">The name of the third component.</param>
+        /// <param name="type4">The type of the fourth component.</param>
+        /// <param name="name4">The name of the fourth component.</param>
         [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are initialized through the constructor.")]
         public CombinedIdAttribute(Type type1, string name1, Type type2, string name2, Type type3, string name3, Type type4, string name4)
         {
@@ -87,6 +114,19 @@ namespace StrongTypeIdGenerator
             };
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CombinedIdAttribute"/> class with five components.
+        /// </summary>
+        /// <param name="type1">The type of the first component.</param>
+        /// <param name="name1">The name of the first component.</param>
+        /// <param name="type2">The type of the second component.</param>
+        /// <param name="name2">The name of the second component.</param>
+        /// <param name="type3">The type of the third component.</param>
+        /// <param name="name3">The name of the third component.</param>
+        /// <param name="type4">The type of the fourth component.</param>
+        /// <param name="name4">The name of the fourth component.</param>
+        /// <param name="type5">The type of the fifth component.</param>
+        /// <param name="name5">The name of the fifth component.</param>
         [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are initialized through the constructor.")]
         public CombinedIdAttribute(Type type1, string name1, Type type2, string name2, Type type3, string name3, Type type4, string name4, Type type5, string name5)
         {
@@ -100,6 +140,21 @@ namespace StrongTypeIdGenerator
             };
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CombinedIdAttribute"/> class with six components.
+        /// </summary>
+        /// <param name="type1">The type of the first component.</param>
+        /// <param name="name1">The name of the first component.</param>
+        /// <param name="type2">The type of the second component.</param>
+        /// <param name="name2">The name of the second component.</param>
+        /// <param name="type3">The type of the third component.</param>
+        /// <param name="name3">The name of the third component.</param>
+        /// <param name="type4">The type of the fourth component.</param>
+        /// <param name="name4">The name of the fourth component.</param>
+        /// <param name="type5">The type of the fifth component.</param>
+        /// <param name="name5">The name of the fifth component.</param>
+        /// <param name="type6">The type of the sixth component.</param>
+        /// <param name="name6">The name of the sixth component.</param>
         [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are initialized through the constructor.")]
         public CombinedIdAttribute(Type type1, string name1, Type type2, string name2, Type type3, string name3, Type type4, string name4, Type type5, string name5, Type type6, string name6)
         {
@@ -114,6 +169,23 @@ namespace StrongTypeIdGenerator
             };
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CombinedIdAttribute"/> class with seven components.
+        /// </summary>
+        /// <param name="type1">The type of the first component.</param>
+        /// <param name="name1">The name of the first component.</param>
+        /// <param name="type2">The type of the second component.</param>
+        /// <param name="name2">The name of the second component.</param>
+        /// <param name="type3">The type of the third component.</param>
+        /// <param name="name3">The name of the third component.</param>
+        /// <param name="type4">The type of the fourth component.</param>
+        /// <param name="name4">The name of the fourth component.</param>
+        /// <param name="type5">The type of the fifth component.</param>
+        /// <param name="name5">The name of the fifth component.</param>
+        /// <param name="type6">The type of the sixth component.</param>
+        /// <param name="name6">The name of the sixth component.</param>
+        /// <param name="type7">The type of the seventh component.</param>
+        /// <param name="name7">The name of the seventh component.</param>
         [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are initialized through the constructor.")]
         public CombinedIdAttribute(Type type1, string name1, Type type2, string name2, Type type3, string name3, Type type4, string name4, Type type5, string name5, Type type6, string name6, Type type7, string name7)
         {
@@ -129,6 +201,25 @@ namespace StrongTypeIdGenerator
             };
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CombinedIdAttribute"/> class with eight components.
+        /// </summary>
+        /// <param name="type1">The type of the first component.</param>
+        /// <param name="name1">The name of the first component.</param>
+        /// <param name="type2">The type of the second component.</param>
+        /// <param name="name2">The name of the second component.</param>
+        /// <param name="type3">The type of the third component.</param>
+        /// <param name="name3">The name of the third component.</param>
+        /// <param name="type4">The type of the fourth component.</param>
+        /// <param name="name4">The name of the fourth component.</param>
+        /// <param name="type5">The type of the fifth component.</param>
+        /// <param name="name5">The name of the fifth component.</param>
+        /// <param name="type6">The type of the sixth component.</param>
+        /// <param name="name6">The name of the sixth component.</param>
+        /// <param name="type7">The type of the seventh component.</param>
+        /// <param name="name7">The name of the seventh component.</param>
+        /// <param name="type8">The type of the eighth component.</param>
+        /// <param name="name8">The name of the eighth component.</param>
         [SuppressMessage("Microsoft.Design", "CA1019:DefineAccessorsForAttributeArguments", Justification = "Types are initialized through the constructor.")]
         public CombinedIdAttribute(Type type1, string name1, Type type2, string name2, Type type3, string name3, Type type4, string name4, Type type5, string name5, Type type6, string name6, Type type7, string name7, Type type8, string name8)
         {
@@ -148,8 +239,14 @@ namespace StrongTypeIdGenerator
         /// <summary>
         /// Gets the list of components that make up the combined identifier.
         /// </summary>
+        /// <value>
+        /// A read-only list of <see cref="ComponentDescriptor"/> objects, each representing a component
+        /// of the combined identifier with its type and name information.
+        /// </value>
         /// <remarks>
         /// Each component is represented by a <see cref="ComponentDescriptor"/>, which includes the type and name of the component.
+        /// The order of components in this list determines the order of parameters in the generated constructor and
+        /// the order of properties in the generated class.
         /// </remarks>
         public IReadOnlyList<ComponentDescriptor> Components { get; }
     }

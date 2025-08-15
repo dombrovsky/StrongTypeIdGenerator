@@ -59,10 +59,29 @@ namespace StrongTypeIdGenerator
         /// <summary>
         /// Gets or sets a value indicating whether the generated constructor should be private.
         /// </summary>
+        /// <value>
+        /// <c>true</c> if the generated constructor should be private; otherwise, <c>false</c>.
+        /// The default value is <c>false</c>.
+        /// </value>
         /// <remarks>
         /// When set to <c>true</c>, the source generator will create a private constructor for the identifier class.
-        /// This can be useful for scenarios where you want to restrict instantiation of the identifier to specific methods or factories.
+        /// This can be useful for scenarios where you want to restrict instantiation of the identifier to specific 
+        /// methods or factories, forcing consumers to use factory methods or other controlled creation patterns.
         /// </remarks>
+        /// <example>
+        /// <code>
+        /// [StringId(GenerateConstructorPrivate = true)]
+        /// public partial class SecureToken
+        /// {
+        ///     // Factory method for controlled creation
+        ///     public static SecureToken Create(string value)
+        ///     {
+        ///         // Validation logic here
+        ///         return new SecureToken(value);
+        ///     }
+        /// }
+        /// </code>
+        /// </example>
         public bool GenerateConstructorPrivate { get; set; }
     }
 }
