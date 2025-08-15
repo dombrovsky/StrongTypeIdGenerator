@@ -2,7 +2,7 @@
 
 Source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid, string-based, and combined identifiers.
 
-[![NuGet](https://img.shields.io/nuget/v/TaskFlow.svg)](https://www.nuget.org/packages/StrongTypeIdGenerator/)
+[![NuGet](https://img.shields.io/nuget/v/StrongTypeIdGenerator.svg)](https://www.nuget.org/packages/StrongTypeIdGenerator/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
