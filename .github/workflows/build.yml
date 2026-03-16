@@ -19,9 +19,9 @@ jobs:
      checks: write
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: | 
           8.0.x
@@ -34,7 +34,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Test
-      run: dotnet test --no-build --verbosity normal --logger "trx;LogFileName=stage\test-results.trx"
+      run: dotnet test --no-build --verbosity normal --results-directory ./TestResults --collect:"XPlat Code Coverage" --logger "trx;LogFileName=test-results.trx"
     - name: Test Report
       uses: dorny/test-reporter@v1
       if: always()
@@ -43,3 +43,27 @@ jobs:
         path: "**/test-results.trx"                            
         reporter: dotnet-trx
         fail-on-error: true
+    - name: Install ReportGenerator
+      if: always()
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+    - name: Generate coverage summary
+      if: always()
+      shell: bash
+      run: |
+        shopt -s globstar nullglob
+        files=(TestResults/**/coverage.cobertura.xml)
+        if [ ${#files[@]} -eq 0 ]; then
+          mkdir -p CoverageReport
+          echo "No coverage files were generated." > CoverageReport/SummaryGithub.md
+          exit 0
+        fi
+        ~/.dotnet/tools/reportgenerator "-reports:TestResults/**/coverage.cobertura.xml" "-targetdir:CoverageReport" "-reporttypes:HtmlInline;MarkdownSummaryGithub"
+    - name: Publish coverage summary
+      if: always()
+      run: cat CoverageReport/SummaryGithub.md >> "$GITHUB_STEP_SUMMARY"
+    - name: Upload coverage artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: CoverageReport
