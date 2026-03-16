@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net6.0;net8.0</TargetFrameworks>
     <IsPackable>true</IsPackable>
+    <PackageTags>strongly-typed-id,strong-type-id,identifier,system-text-json,jsonconverter,typeconverter,source-generator,string-id,guid-id,combined-id</PackageTags>
+    <Description>
+      Optional System.Text.Json integration for StrongTypeIdGenerator identifiers using TypeConverter. Enables serialization for Guid, string, and combined identifiers including dictionary keys.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

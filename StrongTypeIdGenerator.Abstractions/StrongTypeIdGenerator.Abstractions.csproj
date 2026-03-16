@@ -6,9 +6,9 @@
     <PackageId>StrongTypeIdGenerator</PackageId>
     <IsPackable>true</IsPackable>
 
-    <PackageTags>string-id,guid-id,strong-typed-id,strongly-typed,identifier,source-generator,generator</PackageTags>
+    <PackageTags>strongly-typed-id,strong-type-id,identifier,domain-driven-design,ddd,source-generator,string-id,guid-id,combined-id,composite-key,typeconverter</PackageTags>
     <Description>
-      StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid and string-based identifiers.
+      StrongTypeIdGenerator helps you create strongly typed identifiers in C# using source generation. It supports Guid, string, and combined identifiers, custom validation hooks, and configurable constructors.
     </Description>
   </PropertyGroup>
 
