@@ -9,7 +9,7 @@ namespace StrongTypeIdGenerator
         public static void NotNull<T>([NotNull]T? argument, [CallerArgumentExpression("argument")] string? parameterName = null)
             where T : class
         {
-#if NET6_0
+#if NET6_0_OR_GREATER
             ArgumentNullException.ThrowIfNull(argument, parameterName);
 #else
             if (argument is null)
