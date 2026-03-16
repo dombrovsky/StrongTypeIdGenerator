@@ -1,232 +1,147 @@
 # StrongTypeIdGenerator
 
-Source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid, string-based, and combined identifiers.
+StrongTypeIdGenerator is a C# source generator for strongly typed identifiers.
+It helps prevent primitive ID mix-ups by generating domain-specific ID types for `string`, `Guid`, and combined (composite) keys.
 
 [![NuGet](https://img.shields.io/nuget/v/StrongTypeIdGenerator.svg)](https://www.nuget.org/packages/StrongTypeIdGenerator/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
----
+## Why this library
 
-## Getting Started
-Define your ID type:
-```csharp
-[StringId]
-partial class FooId
-{
-}
+- Removes boilerplate for strongly typed IDs.
+- Prevents accidental mixing of identifiers across boundaries.
+- Keeps validation close to the ID type via `CheckValue` hooks.
+- Supports factory-oriented design with optional private constructors.
+- Works with `System.ComponentModel.TypeConverter` out of the box.
+
+Design decisions:
+
+- **Reference types by design.** This project prioritizes invariant safety and controlled construction over minimizing allocations, so invalid IDs are harder to create and propagate.
+- **Built-in precondition hooks.** If an ID class defines `CheckValue(...)`, the method is called from the generated constructor and can validate or normalize input.
+- **Serializer-agnostic core.** The main package only relies on `System.ComponentModel.TypeConverter` and has no direct dependency on `System.Text.Json`, Newtonsoft.Json, or EF Core converters.
+- **netstandard2.0-friendly usage.** IDs can live in `netstandard2.0` libraries without extra serialization dependencies. For `System.Text.Json`, use the optional `StrongTypeIdGenerator.Json` package.
+- **First-class composite identifiers.** `CombinedId` exists for real-world composite business keys, avoiding ad-hoc wrapper implementations.
+
+## Main features
+
+- `StringId` and `GuidId` generation with value semantics.
+- `CombinedId` generation for composite identifiers.
+- Generated equality, comparison, formatting, and operators.
+- Optional custom value property name for scalar identifiers.
+- Optional constructor privacy (`GenerateConstructorPrivate = true`).
+- Optional `System.Text.Json` integration package.
+
+## Quick start
+
+Install package:
+
+```bash
+dotnet add package StrongTypeIdGenerator
 ```
-The generator will produce:
+
+Define identifiers:
+
 ```csharp
-[System.ComponentModel.TypeConverter(typeof(FooIdConverter))]
-partial class FooId : ITypedIdentifier<FooId, string>
-{
-    public FooId(string value)
-    {
-        if (value is null)
-        {
-            throw new ArgumentNullException(nameof(value));
-        }
+using StrongTypeIdGenerator;
 
-        Value = value;
-    }
-
-    public static FooId Unspecified { get; } = new FooId(string.Empty);
-
-    public string Value { get; }
-
-    [return: NotNullIfNotNull(nameof(value))]
-    public static implicit operator FooId?(string? value) { ... }
-
-    [return: NotNullIfNotNull(nameof(value))]
-    public static implicit operator string?(FooId? value) { ... }
-
-    public bool Equals(FooId? other) { ... }
-
-    public int CompareTo(FooId? other) { ... }
-
-    public override bool Equals(object? obj) { ... }
-
-    public override int GetHashCode() => Value.GetHashCode();
-
-    public override string ToString() => Value;
-
-    public string ToString(string? format, IFormatProvider? formatProvider) => Value;
-
-    public static bool operator ==(FooId left, FooId right) { ... }
-
-    public static bool operator !=(FooId left, FooId right) { ... }
-
-    public static bool operator <(FooId left, FooId right) { ... }
-
-    public static bool operator <=(FooId left, FooId right) { ... }
-
-    public static bool operator >(FooId left, FooId right) { ... }
-
-    public static bool operator >=(FooId left, FooId right) { ... }
-
-    private sealed partial class FooIdConverter : TypeToStringConverter<FooId>
-    {
-        protected override string? InternalConvertToString(FooId value)
-        {
-            return value.Value;
-        }
-
-        protected override FooId? InternalConvertFromString(string value)
-        {
-            return new FooId(value);
-        }
-    }
-}
-```
-## Design decisions
-There are a few opinionated principles regarding what strong type identifiers should and should not do, which may be different from similar libraries and are reasons this project existence.
-### Idenifier type should be a reference type, not a value type.
-Being able to protect invariants and not allow instance of id with invalid value to exist, is chosen over avoiding additional object allocation.
-### Ability to define custom id precondition checks.
-If Id class defines method `static string CheckValue(string value)`, that method would be called from generated constructor.
-```csharp
 [StringId]
-partial class FooId
-{
-    private static string CheckValue(string value)
-    {
-        if (value.Length > 10)
-        {
-            throw new ArgumentException("Value is too long", nameof(value));
-        }
-
-        return value;
-    }
-}
-```
-### No dependency on serialization libraries.
-StrongTypeIdGenerator only defines `System.ComponentModel.TypeConverter` that can convert to and from `string`. No `System.Text.Json` or `Newtonsoft.Json` or EF Core converters defined.
-
-This way Id types can be defined in `netstandard2.0` libraries with no additional dependencies.
-
-The proposed way to use generated Id classes in serialization e.g. with `System.Text.Json` is to provide [custom JsonConverterFactory](https://github.com/dombrovsky/StrongTypeIdGenerator/blob/main/StrongTypeIdGenerator.Json/TypeConverterJsonConverterFactory.cs) to serializer, that would utilize generated `TypeConverter`.
-
-## Usage
-Define ID types easily:
-```csharp
-[StringId]
-public sealed partial class FooId
+public sealed partial class OrderId
 {
 }
 
 [GuidId]
-public sealed partial class BarId
+public sealed partial class CustomerId
+{
+}
+
+[CombinedId(typeof(CustomerId), "CustomerId", typeof(OrderId), "OrderId")]
+public sealed partial class CustomerOrderId
 {
 }
 ```
-Or use `[CombinedId]` to create a composite identifier:
+
+<details>
+<summary>Generated structure (example for <code>OrderId</code>)</summary>
+
 ```csharp
-[CombinedId(typeof(BarId), "BarId", typeof(string), "StringId", typeof(Guid), "GuidId", typeof(int), "IntId")]
-public partial class FooBarCombinedId
+[TypeConverter(typeof(OrderIdConverter))]
+public sealed partial class OrderId : ITypedIdentifier<OrderId, string>
 {
+	public OrderId(string value) { ... }
+	public static OrderId Unspecified { get; } = ...;
+
+	public string Value { get; }
+
+	public static implicit operator OrderId?(string? value) { ... }
+	public static implicit operator string?(OrderId? value) { ... }
+
+	public bool Equals(OrderId? other) { ... }
+	public int CompareTo(OrderId? other) { ... }
+	public override bool Equals(object? obj) { ... }
+	public override int GetHashCode() { ... }
+	public override string ToString() { ... }
+	public string ToString(string? format, IFormatProvider? provider) { ... }
+
+	public static bool operator ==(OrderId left, OrderId right) { ... }
+	public static bool operator !=(OrderId left, OrderId right) { ... }
+	public static bool operator <(OrderId left, OrderId right) { ... }
+	public static bool operator <=(OrderId left, OrderId right) { ... }
+	public static bool operator >(OrderId left, OrderId right) { ... }
+	public static bool operator >=(OrderId left, OrderId right) { ... }
+
+	private sealed partial class OrderIdConverter : TypeToStringConverter<OrderId>
+	{
+		protected override string? InternalConvertToString(OrderId value) { ... }
+		protected override OrderId? InternalConvertFromString(string value) { ... }
+	}
 }
 ```
-Combined indentifier supports other StrongTypeId generated types and primitives e.g. `string`, `int`, `Guid`.
-### Custom Validation
-You can add custom validation logic to your ID types by defining a `CheckValue` method. The method will be called from the constructor and can validate (throw exceptions) or modify the input value.
-#### String and Guid IDs
-For `StringId` and `GuidId`, define a method with this signature:
+
+</details>
+
+The generator creates immutable reference-type identifiers with:
+
+- constructor (public or private based on attribute options)
+- typed value/component properties
+- `Unspecified`
+- `Equals`, `GetHashCode`, comparison operators
+- `ToString` and format overloads
+- implicit conversion operators
+- nested `TypeConverter`
+
+## Optional JSON integration
+
+For `System.Text.Json`, install:
+
+```bash
+dotnet add package StrongTypeIdGenerator.Json
+```
+
+Configure serializer:
+
 ```csharp
-private static string CheckValue(string value)
-private static Guid CheckValue(Guid value)
-{
-    // Validation logic here
-    return value;
-}
-```
-#### Combined IDs
-For `CombinedId`, the `CheckValue` method should accept individual parameters matching the constructor and return a tuple with the validated values:
-```csharp
-private static (BarId, string, Guid, int) CheckValue(BarId barId, string stringId, Guid guidId, int intId)
-{
-    // Validation logic here
-    return (barId, stringId, guidId, intId);
-}
-```
-The `CheckValue` method is called from the constructor and its result is used to set the properties of the ID class.
-### Custom Value Property Name
-You can customize the name of the property that holds the identifier's value by setting the `ValuePropertyName` property on the attribute:
-```csharp
-[GuidId(ValuePropertyName = "Uuid")]
-public sealed partial class BarId
-{
-}
-```
-And generated class fill get 'Uuid' property instead of 'Value':
-```csharp
-public sealed partial class BarId
-{
-  ...
-  public Guid Uuid { get; }
-  ...
-}
-```
-When using a custom property name, the generated class will still implement the `ITypedIdentifier<T>` interface by providing an explicit implementation for the `Value` property that forwards to your custom property.
+using StrongTypeIdGenerator.Json;
 
-### Private Constructor Generation
-You can generate private constructors for your ID types to enforce controlled instantiation through factory methods. This is useful for implementing business rules or ensuring specific creation patterns.
-
-Set the `GenerateConstructorPrivate` property to `true` on any of the ID attributes:
-
-#### String and Guid IDs
-```csharp
-[StringId(GenerateConstructorPrivate = true)]
-public partial class SecureToken
-{
-    public static SecureToken CreateNew()
-    {
-        return new SecureToken(GenerateSecureRandomString());
-    }
-
-    public static SecureToken FromExisting(string value)
-    {
-        // Validate the token format
-        if (!IsValidTokenFormat(value))
-            throw new ArgumentException("Invalid token format");
-            
-        return new SecureToken(value);
-    }
-
-    private static string GenerateSecureRandomString() => /* implementation */;
-    private static bool IsValidTokenFormat(string value) => /* implementation */;
-}
-
-[GuidId(GenerateConstructorPrivate = true)]
-public partial class UserId
-{
-    public static UserId CreateNew() => new UserId(Guid.NewGuid());
-    
-    public static UserId FromString(string value) => new UserId(Guid.Parse(value));
-}
+var options = new JsonSerializerOptions();
+options.Converters.Add(new TypeConverterJsonConverterFactory());
 ```
 
-#### Combined IDs
-```csharp
-[CombinedId(typeof(Guid), "TenantId", typeof(string), "UserId", GenerateConstructorPrivate = true)]
-public partial class CompositeKey
-{
-    public static CompositeKey CreateForTenant(Guid tenantId, string userId)
-    {
-        if (tenantId == Guid.Empty)
-            throw new ArgumentException("Tenant ID cannot be empty");
-        if (string.IsNullOrWhiteSpace(userId))
-            throw new ArgumentException("User ID cannot be empty");
-            
-        return new CompositeKey(tenantId, userId);
-    }
-}
-```
+## Documentation
 
-**Note:** When using private constructors:
-- Implicit conversion operators still work and call the private constructor
-- The `Unspecified` static property is still accessible
-- `TypeConverter` functionality continues to work for serialization scenarios
-- Custom `CheckValue` methods are still called during construction
+Detailed docs are in the docs folder:
+
+- [Docs Index](docs/README.md)
+- [Getting Started](docs/getting-started.md)
+- [String IDs](docs/string-id.md)
+- [Guid IDs](docs/guid-id.md)
+- [Combined IDs](docs/combined-id.md)
+- [Custom Validation (CheckValue)](docs/custom-validation-checkvalue.md)
+- [Custom Value Property Name](docs/custom-value-property-name.md)
+- [Private Constructors and Factories](docs/private-constructors-and-factories.md)
+- [TypeConverter and System.Text.Json](docs/typeconverter-and-json.md)
+- [Design Decisions](docs/design-decisions.md)
+- [FAQ](docs/faq.md)
 
 ## Acknowledgements
-Inspired by a great library https://github.com/andrewlock/StronglyTypedId.
+
+Inspired by [StronglyTypedId](https://github.com/andrewlock/StronglyTypedId).

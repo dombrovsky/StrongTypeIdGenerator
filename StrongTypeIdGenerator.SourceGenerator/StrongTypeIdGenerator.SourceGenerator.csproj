@@ -9,9 +9,9 @@
     <IsRoslynComponent>true</IsRoslynComponent>
     <IsPackable>false</IsPackable>
     <PackageId>StrongTypeIdGenerator.SourceGenerator</PackageId>
-    <PackageTags>string-id,guid-id,strong-typed-id,strongly-typed,identifier,source-generator,generator</PackageTags>
+    <PackageTags>strongly-typed-id,strong-type-id,identifier,domain-driven-design,ddd,source-generator,roslyn-generator,string-id,guid-id,combined-id,composite-key,typeconverter</PackageTags>
     <Description>
-      StrongTypeIdGenerator is a source generator that helps you create strongly-typed identifiers in your C# projects. It supports Guid and string-based identifiers.
+      StrongTypeIdGenerator source generator for C# strongly typed identifiers. Supports Guid, string, and combined identifiers with generated equality, comparison, conversion operators, and TypeConverter integration.
 
       This package contains the source generator itself.
     </Description>
