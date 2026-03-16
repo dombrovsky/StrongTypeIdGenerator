@@ -3,7 +3,9 @@
 StrongTypeIdGenerator is a C# source generator for strongly typed identifiers.
 It helps prevent primitive ID mix-ups by generating domain-specific ID types for `string`, `Guid`, and combined (composite) keys.
 
-[![NuGet](https://img.shields.io/nuget/v/StrongTypeIdGenerator.svg)](https://www.nuget.org/packages/StrongTypeIdGenerator/)
+[![NuGet Core](https://img.shields.io/nuget/v/StrongTypeIdGenerator.svg?label=NuGet%20Core)](https://www.nuget.org/packages/StrongTypeIdGenerator/)
+[![NuGet Json](https://img.shields.io/nuget/v/StrongTypeIdGenerator.Json.svg?label=NuGet%20Json)](https://www.nuget.org/packages/StrongTypeIdGenerator.Json/)
+[![NuGet EF Core](https://img.shields.io/nuget/v/StrongTypeIdGenerator.EntityFrameworkCore.svg?label=NuGet%20EF%20Core)](https://www.nuget.org/packages/StrongTypeIdGenerator.EntityFrameworkCore/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Why this library
@@ -19,7 +21,7 @@ Design decisions:
 - **Reference types by design.** This project prioritizes invariant safety and controlled construction over minimizing allocations, so invalid IDs are harder to create and propagate.
 - **Built-in precondition hooks.** If an ID class defines `CheckValue(...)`, the method is called from the generated constructor and can validate or normalize input.
 - **Serializer-agnostic core.** The main package only relies on `System.ComponentModel.TypeConverter` and has no direct dependency on `System.Text.Json`, Newtonsoft.Json, or EF Core converters.
-- **netstandard2.0-friendly usage.** IDs can live in `netstandard2.0` libraries without extra serialization dependencies. For `System.Text.Json`, use the optional `StrongTypeIdGenerator.Json` package.
+- **netstandard2.0-friendly usage.** IDs can live in `netstandard2.0` libraries without extra serialization dependencies. For `System.Text.Json`, use the optional `StrongTypeIdGenerator.Json` package. For EF Core, use the optional `StrongTypeIdGenerator.EntityFrameworkCore` package.
 - **First-class composite identifiers.** `CombinedId` exists for real-world composite business keys, avoiding ad-hoc wrapper implementations.
 
 ## Main features
@@ -30,6 +32,7 @@ Design decisions:
 - Optional custom value property name for scalar identifiers.
 - Optional constructor privacy (`GenerateConstructorPrivate = true`).
 - Optional `System.Text.Json` integration package.
+- Optional EF Core integration package.
 
 ## Quick start
 
@@ -109,7 +112,7 @@ The generator creates immutable reference-type identifiers with:
 - implicit conversion operators
 - nested `TypeConverter`
 
-## Optional JSON integration
+## Optional JSON and EF Core integration
 
 For `System.Text.Json`, install:
 
@@ -126,6 +129,8 @@ var options = new JsonSerializerOptions();
 options.Converters.Add(new TypeConverterJsonConverterFactory());
 ```
 
+For EF Core integration, install `StrongTypeIdGenerator.EntityFrameworkCore` and see the [EF Core Integration](docs/ef-core.md) guide.
+
 ## Documentation
 
 Detailed docs are in the docs folder:
@@ -139,6 +144,7 @@ Detailed docs are in the docs folder:
 - [Custom Value Property Name](docs/custom-value-property-name.md)
 - [Private Constructors and Factories](docs/private-constructors-and-factories.md)
 - [TypeConverter and System.Text.Json](docs/typeconverter-and-json.md)
+- [EF Core Integration](docs/ef-core.md)
 - [Design Decisions](docs/design-decisions.md)
 - [FAQ](docs/faq.md)
 

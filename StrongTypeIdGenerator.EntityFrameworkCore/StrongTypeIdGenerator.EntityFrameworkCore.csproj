@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <IsPackable>true</IsPackable>
+    <PackageId>StrongTypeIdGenerator.EntityFrameworkCore</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\StrongTypeIdGenerator.Abstractions\Argument.cs" Link="Argument.cs" />
+    <Compile Include="..\StrongTypeIdGenerator.Abstractions\CallerArgumentExpressionAttribute.cs" Link="CallerArgumentExpressionAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StrongTypeIdGenerator.Abstractions\StrongTypeIdGenerator.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

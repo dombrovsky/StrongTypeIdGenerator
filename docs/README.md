@@ -15,6 +15,7 @@ This folder contains detailed documentation for every feature of StrongTypeIdGen
 - [Custom Value Property Name](custom-value-property-name.md)
 - [Private Constructors and Factory Methods](private-constructors-and-factories.md)
 - [TypeConverter and System.Text.Json Integration](typeconverter-and-json.md)
+- [Entity Framework Core Integration](ef-core.md)
 
 ## Additional details
 
@@ -25,5 +26,6 @@ This folder contains detailed documentation for every feature of StrongTypeIdGen
 
 - `StrongTypeIdGenerator` contains attributes, abstractions, and the source generator package wiring.
 - `StrongTypeIdGenerator.Json` provides optional `System.Text.Json` support through `TypeConverterJsonConverterFactory`.
+- `StrongTypeIdGenerator.EntityFrameworkCore` provides optional EF Core 8+ support via value converters and complex type conventions.
 
 Back to [repository README](../README.md).
