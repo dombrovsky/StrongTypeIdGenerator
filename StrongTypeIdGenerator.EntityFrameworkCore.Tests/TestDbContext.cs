@@ -12,6 +12,12 @@ namespace StrongTypeIdGenerator.EntityFrameworkCore.Tests
 
         public DbSet<NullableGuidIdEntity> NullableGuidIds => Set<NullableGuidIdEntity>();
 
+        public DbSet<NullableStringIdEntity> NullableStringIds => Set<NullableStringIdEntity>();
+
+        public DbSet<CheckValueGuidIdEntity> CheckValueGuidIds => Set<CheckValueGuidIdEntity>();
+
+        public DbSet<CheckValueStringIdEntity> CheckValueStringIds => Set<CheckValueStringIdEntity>();
+
         public DbSet<PrivateGuidIdEntity> PrivateGuidIds => Set<PrivateGuidIdEntity>();
 
         public DbSet<GuidIdWithPropertyNameEntity> GuidIdsWithPropertyName => Set<GuidIdWithPropertyNameEntity>();
@@ -26,6 +32,9 @@ namespace StrongTypeIdGenerator.EntityFrameworkCore.Tests
             modelBuilder.Entity<StringIdEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<CombinedIdEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<NullableGuidIdEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<NullableStringIdEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<CheckValueGuidIdEntity>().HasKey(x => x.Id);
+            modelBuilder.Entity<CheckValueStringIdEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<PrivateGuidIdEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<GuidIdWithPropertyNameEntity>().HasKey(x => x.Id);
             modelBuilder.Entity<StringIdWithPropertyNameEntity>().HasKey(x => x.Id);
@@ -72,6 +81,20 @@ namespace StrongTypeIdGenerator.EntityFrameworkCore.Tests
             modelBuilder.Entity<NullableGuidIdEntity>()
                 .Property(x => x.OptionalId)
                 .HasNullableStrongTypeIdConversion<TestGuidId, Guid>();
+
+            modelBuilder.Entity<NullableStringIdEntity>()
+                .Property(x => x.OptionalId)
+                .HasConversion(
+                    value => value == null ? null : value.Value,
+                    value => value == null ? null : new TestStringId(value));
+
+            modelBuilder.Entity<CheckValueGuidIdEntity>()
+                .Property(x => x.StrongId)
+                .HasStrongTypeIdConversion<CheckValueGuidId, Guid>();
+
+            modelBuilder.Entity<CheckValueStringIdEntity>()
+                .Property(x => x.StrongId)
+                .HasStrongTypeIdConversion<CheckValueStringId, string>();
 
             modelBuilder.Entity<PrivateGuidIdEntity>()
                 .Property(x => x.StrongId)

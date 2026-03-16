@@ -28,6 +28,27 @@ namespace StrongTypeIdGenerator.EntityFrameworkCore.Tests
         public TestGuidId? OptionalId { get; set; }
     }
 
+    internal sealed class NullableStringIdEntity
+    {
+        public int Id { get; set; }
+
+        public TestStringId? OptionalId { get; set; }
+    }
+
+    internal sealed class CheckValueGuidIdEntity
+    {
+        public int Id { get; set; }
+
+        public required CheckValueGuidId StrongId { get; set; }
+    }
+
+    internal sealed class CheckValueStringIdEntity
+    {
+        public int Id { get; set; }
+
+        public required CheckValueStringId StrongId { get; set; }
+    }
+
     internal sealed class PrivateGuidIdEntity
     {
         public int Id { get; set; }
