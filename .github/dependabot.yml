@@ -1,0 +1,28 @@
+version: 2
+updates:
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
+    groups:
+      test-dependencies:
+        patterns:
+          - "NUnit*"
+          - "Microsoft.NET.Test.Sdk"
+          - "coverlet.*"
+      roslyn-dependencies:
+        patterns:
+          - "Microsoft.CodeAnalysis*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "06:30"
+      timezone: "UTC"
+    open-pull-requests-limit: 10
